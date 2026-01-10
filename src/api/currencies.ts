@@ -11,12 +11,12 @@ interface UpdateCurrencyResponse {
 }
 
 export const getSupportedCurrencies = async () => {
-    const { data } = await apiClient.get<GetCurrenciesResponse>('/api/v1/currencies')
+    const { data } = await apiClient.get<GetCurrenciesResponse>('/api/v1.1/currencies')
     return data
 }
 
 export const updateUserCurrency = async (currencyId: string) => {
-    const { data } = await apiClient.put<UpdateCurrencyResponse>('/api/v1/users/currency', {
+    const { data } = await apiClient.put<UpdateCurrencyResponse>('/api/v1.1/users/currency', {
         currencyId,
     })
     return data
