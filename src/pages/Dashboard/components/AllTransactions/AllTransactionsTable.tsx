@@ -8,12 +8,14 @@ interface AllTransactionsTableProps {
   grouped?: GroupedTransactions[]
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
+  currency?: string
 }
 
 const renderRows = (
   list: Transaction[],
   onDeleteTransaction?: (transaction: Transaction) => void,
   isDeleting?: boolean,
+  currency?: string,
 ) =>
   list.map(transaction => {
     const key =
@@ -24,6 +26,7 @@ const renderRows = (
         transaction={transaction}
         onDeleteTransaction={onDeleteTransaction}
         isDeleting={isDeleting}
+        currency={currency}
       />
     )
   })
@@ -33,6 +36,7 @@ export const AllTransactionsTable = ({
   grouped,
   onDeleteTransaction,
   isDeleting,
+  currency,
 }: AllTransactionsTableProps) => {
   if (grouped && grouped.length > 0) {
     return (
@@ -59,7 +63,7 @@ export const AllTransactionsTable = ({
                 <col className="w-[56px]" />
               </colgroup>
               <TransactionTableHeader />
-              <tbody>{renderRows(group.items, onDeleteTransaction, isDeleting)}</tbody>
+              <tbody>{renderRows(group.items, onDeleteTransaction, isDeleting, currency)}</tbody>
             </table>
           </div>
         ))}
@@ -78,7 +82,7 @@ export const AllTransactionsTable = ({
           <col className="w-[56px]" />
         </colgroup>
         <TransactionTableHeader />
-        <tbody>{renderRows(transactions, onDeleteTransaction, isDeleting)}</tbody>
+        <tbody>{renderRows(transactions, onDeleteTransaction, isDeleting, currency)}</tbody>
       </table>
     </div>
   )

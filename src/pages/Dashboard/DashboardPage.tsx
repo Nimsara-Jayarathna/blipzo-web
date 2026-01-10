@@ -204,6 +204,7 @@ export const DashboardPage = () => {
               balance={todayBalance}
               onDeleteTransaction={handleDeleteTransaction}
               isDeleting={deleteTransactionMutation.isPending}
+              currency={user?.currency?.code}
             />
           ) : (
             <AllTransactionsPage
@@ -213,6 +214,7 @@ export const DashboardPage = () => {
               onFiltersChange={setAllFilters}
               onDeleteTransaction={handleDeleteTransaction}
               isDeleting={deleteTransactionMutation.isPending}
+              currency={user?.currency?.code}
             />
           )}
         </Widget>

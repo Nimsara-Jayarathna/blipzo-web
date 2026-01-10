@@ -20,6 +20,16 @@ export interface UserProfile {
   id: string
   name: string
   email: string
+  currency?: Currency
+}
+
+export interface Currency {
+  _id: string
+  id?: string
+  name: string
+  code: string
+  symbol: string
+  isDefault?: boolean
 }
 
 export interface Category {

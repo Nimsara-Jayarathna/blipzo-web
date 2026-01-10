@@ -21,6 +21,7 @@ export interface AllTransactionsPageProps {
   onFiltersChange: (filters: AllTransactionsFilters) => void
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
+  currency?: string
 }
 
 export interface GroupedTransactions {
