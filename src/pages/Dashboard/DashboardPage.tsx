@@ -30,6 +30,8 @@ export const DashboardPage = () => {
   const { theme, toggleTheme } = useTheme()
   const queryClient = useQueryClient()
   const todayDate = dayjs().format('YYYY-MM-DD')
+  const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD')
+  const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD')
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [isReportsOpen, setReportsOpen] = useState(false)
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
@@ -40,8 +42,8 @@ export const DashboardPage = () => {
   const [todayExpense, setTodayExpense] = useState(0)
   const [todayBalance, setTodayBalance] = useState(0)
   const [allFilters, setAllFilters] = useState<AllTransactionsFilters>({
-    startDate: todayDate,
-    endDate: todayDate,
+    startDate: startOfMonth,
+    endDate: endOfMonth,
     typeFilter: 'all',
     categoryFilter: 'all',
     sortField: 'date',
