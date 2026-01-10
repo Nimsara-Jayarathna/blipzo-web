@@ -118,8 +118,8 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     }
 
     return (
-        <div className="relative">
-            <div className="mb-6 flex items-center justify-between">
+        <div className="relative flex h-full flex-col">
+            <div className="mb-6 flex shrink-0 items-center justify-between">
                 <div>
                     <h3 className="text-lg font-semibold text-[var(--page-fg)]">Categories</h3>
                     <p className="text-sm text-[var(--text-muted)]">Manage your income and expense categories</p>
@@ -134,9 +134,9 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                 </button>
             </div>
 
-            <div className="space-y-5">
+            <div className="flex min-h-0 flex-1 flex-col space-y-5">
                 {uiError || isError ? (
-                    <div className="flex justify-center">
+                    <div className="flex shrink-0 justify-center">
                         <ErrorBanner
                             message={(uiError ?? mapApiError(error)).message}
                             detail={(uiError ?? mapApiError(error)).detail}
@@ -146,16 +146,18 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                     </div>
                 ) : null}
 
-                <CategoriesGrid
-                    isLoading={isLoading}
-                    categories={categories}
-                    limit={categoriesLimit}
-                    deleteMutation={deleteMutation}
-                    resolveCategoryId={resolveCategoryId}
-                    onDelete={handleDelete}
-                    onSetDefault={handleSetDefault}
-                    isSettingDefault={setDefaultMutation.isPending}
-                />
+                <div className="min-h-0 flex-1">
+                    <CategoriesGrid
+                        isLoading={isLoading}
+                        categories={categories}
+                        limit={categoriesLimit}
+                        deleteMutation={deleteMutation}
+                        resolveCategoryId={resolveCategoryId}
+                        onDelete={handleDelete}
+                        onSetDefault={handleSetDefault}
+                        isSettingDefault={setDefaultMutation.isPending}
+                    />
+                </div>
             </div>
 
             {(isLoading || isFetching || deleteMutation.isPending || setDefaultMutation.isPending) && (

@@ -53,7 +53,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
           ))}
         </nav>
 
-        <div className="min-h-[400px] rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
+        <div className="flex h-[520px] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
           {activeTab === 'categories' ? (
             <SettingsCategoriesTab
               isAddCategoryOpen={isAddCategoryOpen}

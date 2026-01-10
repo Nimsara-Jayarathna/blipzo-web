@@ -50,13 +50,13 @@ export const CategoriesGrid = ({
   ]
 
   return (
-    <div className="grid gap-8 sm:grid-cols-2">
+    <div className="grid h-full gap-8 overflow-hidden sm:grid-cols-2">
       {grouped.map(column => {
         const countLabel = typeof limit === 'number' ? `${column.items.length}/${limit}` : `${column.items.length}`
 
         return (
-          <div key={column.title} className="flex flex-col gap-4">
-            <div className="flex items-end justify-between border-b border-[var(--border-glass)] pb-2">
+          <div key={column.title} className="flex h-full flex-col gap-4 overflow-hidden">
+            <div className="flex shrink-0 items-end justify-between border-b border-[var(--border-glass)] pb-2">
               <div>
                 <h3 className="font-semibold text-[var(--page-fg)]">{column.title}</h3>
                 <p className="text-xs text-[var(--text-muted)]">{column.description}</p>
@@ -66,7 +66,7 @@ export const CategoriesGrid = ({
               </span>
             </div>
 
-            <ul className="space-y-1">
+            <ul className="flex-1 space-y-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-accent/10 scrollbar-track-transparent">
               {column.items.length ? (
                 column.items.map(category => {
                   const categoryId = resolveCategoryId(category)
@@ -83,8 +83,8 @@ export const CategoriesGrid = ({
                       <div className="flex items-center gap-3">
                         <span
                           className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${column.isIncome
-                              ? 'bg-emerald-500/10 text-emerald-500'
-                              : 'bg-red-500/10 text-red-500'
+                            ? 'bg-emerald-500/10 text-emerald-500'
+                            : 'bg-red-500/10 text-red-500'
                             }`}
                         >
                           {initials}
@@ -97,14 +97,14 @@ export const CategoriesGrid = ({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 sm:gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <button
                           type="button"
                           onClick={() => onSetDefault(category)}
                           disabled={isDefault || isSettingDefault}
                           className={`flex h-8 w-8 items-center justify-center rounded-full transition ${isDefault
-                              ? 'text-yellow-400 opacity-100'
-                              : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass)] hover:text-yellow-400'
+                            ? 'text-yellow-400 opacity-100'
+                            : 'text-[var(--text-subtle)] hover:bg-[var(--surface-glass)] hover:text-yellow-400'
                             } disabled:cursor-not-allowed`}
                           title={isDefault ? 'Default category' : 'Set as default'}
                         >
@@ -118,8 +118,8 @@ export const CategoriesGrid = ({
                           }}
                           disabled={isDeleting || !canDelete}
                           className={`flex h-8 w-8 items-center justify-center rounded-full transition ${canDelete
-                              ? 'text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-500'
-                              : 'cursor-not-allowed text-[var(--text-subtle)] opacity-50'
+                            ? 'text-[var(--text-subtle)] hover:bg-red-500/10 hover:text-red-500'
+                            : 'cursor-not-allowed text-[var(--text-subtle)] opacity-50'
                             }`}
                           title={canDelete ? 'Delete category' : 'Cannot delete default'}
                         >
