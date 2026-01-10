@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { SettingsCategoriesTab } from './SettingsCategoriesTab'
 import { ProfileSettingsTab } from './ProfileSettingsTab'
-import { TabNavigation } from '../../components/TabNavigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCoins, faTags } from '@fortawesome/free-solid-svg-icons'
 
@@ -17,51 +16,49 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('categories')
   const [isAddCategoryOpen, setAddCategoryOpen] = useState(false)
 
+  const tabs: { id: SettingsTab; label: string; icon: any }[] = [
+    {
+      id: 'categories',
+      label: 'Categories',
+      icon: faTags,
+    },
+    {
+      id: 'currency',
+      label: 'Currency',
+      icon: faCoins,
+    },
+  ]
+
   return (
     <Modal
       open={open}
       onClose={onClose}
       title="Settings"
-      subtitle="Manage your application preferences and configurations."
       widthClassName="max-w-4xl"
-      headerActions={
-        activeTab === 'categories' ? (
-          <button
-            type="button"
-            onClick={() => setAddCategoryOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
-          >
-            <span className="text-base leading-none text-accent">+</span>
-            <span>Add category</span>
-          </button>
-        ) : null
-      }
     >
-      <div className="flex flex-col gap-6">
-        <div className="flex justify-center">
-          <TabNavigation
-            tabs={[
-              {
-                id: 'categories',
-                label: 'Categories',
-                icon: <FontAwesomeIcon icon={faTags} className="h-4 w-4" />,
-              },
-              {
-                id: 'currency',
-                label: 'Currency',
-                icon: <FontAwesomeIcon icon={faCoins} className="h-4 w-4" />,
-              },
-            ]}
-            activeTab={activeTab}
-            onChange={id => setActiveTab(id as SettingsTab)}
-          />
-        </div>
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-[200px_1fr]">
+        <nav className="flex flex-col space-y-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${activeTab === tab.id
+                ? 'bg-accent text-white shadow-lg shadow-accent/25'
+                : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass-thick)] hover:text-[var(--page-fg)]'
+                }`}
+            >
+              <FontAwesomeIcon icon={tab.icon} className={activeTab === tab.id ? 'text-white' : ''} />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
 
-        <div className="min-h-[400px]">
+        <div className="min-h-[400px] rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
           {activeTab === 'categories' ? (
             <SettingsCategoriesTab
               isAddCategoryOpen={isAddCategoryOpen}
               onAddCategoryClose={() => setAddCategoryOpen(false)}
+              onAddCategoryOpen={() => setAddCategoryOpen(true)}
             />
           ) : activeTab === 'currency' ? (
             <ProfileSettingsTab />

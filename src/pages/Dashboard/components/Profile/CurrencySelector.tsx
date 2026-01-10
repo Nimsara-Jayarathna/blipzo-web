@@ -5,7 +5,7 @@ import { useAuth } from '../../../../hooks/useAuth'
 import { LoadingSpinner } from '../../../../components/LoadingSpinner'
 import toast from 'react-hot-toast'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faGlobe, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import type { Currency } from '../../../../types'
 
 export const CurrencySelector = () => {
@@ -58,16 +58,11 @@ export const CurrencySelector = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
-          <FontAwesomeIcon icon={faGlobe} />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-[var(--page-fg)]">Display Currency</h3>
-          <p className="text-xs text-[var(--text-muted)]">
-            Select your preferred currency for display across the application.
-          </p>
-        </div>
+      <div>
+        <h3 className="text-lg font-semibold text-[var(--page-fg)]">Display Currency</h3>
+        <p className="text-sm text-[var(--text-muted)]">
+          Select your preferred currency for display across the application.
+        </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

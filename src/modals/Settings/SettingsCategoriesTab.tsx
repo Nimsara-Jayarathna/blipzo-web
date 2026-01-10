@@ -12,11 +12,12 @@ import { AddCategoryModal } from './AddCategoryModal'
 interface SettingsCategoriesTabProps {
     isAddCategoryOpen: boolean
     onAddCategoryClose: () => void
+    onAddCategoryOpen: () => void
 }
 
 const categoryKey = ['categories']
 
-export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose }: SettingsCategoriesTabProps) => {
+export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, onAddCategoryOpen }: SettingsCategoriesTabProps) => {
     const queryClient = useQueryClient()
     const [defaultIncomeId, setDefaultIncomeId] = useState('')
     const [defaultExpenseId, setDefaultExpenseId] = useState('')
@@ -118,6 +119,21 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose }:
 
     return (
         <div className="relative">
+            <div className="mb-6 flex items-center justify-between">
+                <div>
+                    <h3 className="text-lg font-semibold text-[var(--page-fg)]">Categories</h3>
+                    <p className="text-sm text-[var(--text-muted)]">Manage your income and expense categories</p>
+                </div>
+                <button
+                    type="button"
+                    onClick={onAddCategoryOpen}
+                    className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-glass)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition hover:bg-accent hover:text-white"
+                >
+                    <span className="text-lg leading-none">+</span>
+                    <span>Add New</span>
+                </button>
+            </div>
+
             <div className="space-y-5">
                 {uiError || isError ? (
                     <div className="flex justify-center">
