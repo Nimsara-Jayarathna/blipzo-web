@@ -4,14 +4,14 @@ import { SettingsCategoriesTab } from './SettingsCategoriesTab'
 import { ProfileSettingsTab } from './ProfileSettingsTab'
 import { TabNavigation } from '../../components/TabNavigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTags, faUserCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCoins, faTags } from '@fortawesome/free-solid-svg-icons'
 
 interface SettingsModalProps {
   open: boolean
   onClose: () => void
 }
 
-type SettingsTab = 'categories' | 'profile'
+type SettingsTab = 'categories' | 'currency'
 
 export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('categories')
@@ -47,9 +47,9 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
                 icon: <FontAwesomeIcon icon={faTags} className="h-4 w-4" />,
               },
               {
-                id: 'profile',
-                label: 'Profile',
-                icon: <FontAwesomeIcon icon={faUserCircle} className="h-4 w-4" />,
+                id: 'currency',
+                label: 'Currency',
+                icon: <FontAwesomeIcon icon={faCoins} className="h-4 w-4" />,
               },
             ]}
             activeTab={activeTab}
@@ -63,7 +63,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
               isAddCategoryOpen={isAddCategoryOpen}
               onAddCategoryClose={() => setAddCategoryOpen(false)}
             />
-          ) : activeTab === 'profile' ? (
+          ) : activeTab === 'currency' ? (
             <ProfileSettingsTab />
           ) : null}
         </div>
