@@ -215,11 +215,6 @@ export const AuthModal = ({
                   value={formState.password}
                   onChange={event => onFieldChange('password', event.target.value)}
                 />
-                <div className="flex justify-end">
-                  <button type="button" onClick={() => { onClose(); navigate('/forgot-password') }} className="text-xs text-[var(--text-muted)] hover:text-[#3498db]">
-                    Forgot Password?
-                  </button>
-                </div>
               </>
             )}
 
