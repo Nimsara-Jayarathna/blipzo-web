@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { Modal } from '../../../components/Modal'
 import { Spinner } from '../../../components/Spinner'
 import type { AuthMode } from '../../../types'
-import { registerInit, registerVerify, registerComplete } from '../../../api/auth'
+import { registerInit, registerVerify, registerComplete, passwordForgot, passwordReset } from '../../../api/auth'
 import { useAuth } from '../../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 
@@ -23,6 +23,7 @@ interface AuthModalProps {
     password: string
   }
   onFieldChange: (field: 'firstName' | 'lastName' | 'email' | 'password', value: string) => void
+  resetToken?: string
 }
 
 type RegisterStep = 'email' | 'otp' | 'details'
@@ -36,7 +37,8 @@ export const AuthModal = ({
   onModeChange,
   formState,
   onFieldChange,
-}: AuthModalProps) => {
+  resetToken,
+}: AuthModalProps & { resetToken?: string }) => {
   const activeMode: AuthMode = mode ?? 'login'
   const { setAuth } = useAuth()
   const navigate = useNavigate()
@@ -46,6 +48,10 @@ export const AuthModal = ({
   const [otp, setOtp] = useState('')
   const [registrationToken, setRegistrationToken] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+
+  // Reset Password State
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('')
+
 
   // Mutations
   const initMutation = useMutation({
@@ -77,12 +83,44 @@ export const AuthModal = ({
     onError: (err: any) => toast.error(err.response?.data?.message || 'Registration failed'),
   })
 
+  // --- Forgot Password Mutation ---
+  const forgotPasswordMutation = useMutation({
+    mutationFn: passwordForgot,
+    onSuccess: (data: any) => {
+      if (data?.message === 'User not found') {
+        toast.error('This email is not registered with us.')
+      } else {
+        toast.success('Check your inbox for the reset link.')
+      }
+    },
+    onError: (err: any) => {
+      if (err.response?.data?.message === 'User not found') {
+        toast.error('This email is not registered with us.')
+      } else {
+        toast.error('Failed to process request')
+      }
+    },
+  })
+
+  // --- Reset Password Mutation ---
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ token, password }: { token: string; password: string }) => passwordReset(token, password),
+    onSuccess: () => {
+      toast.success('Password reset successfully. Please log in.')
+      onModeChange('login')
+      navigate('/')
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to reset password'),
+  })
+
+
   // Reset wizard on close or mode switch
   const handleModeSwitch = (newMode: AuthMode) => {
     setStep('email')
     setOtp('')
     setRegistrationToken('')
     setConfirmPassword('')
+    setResetConfirmPassword('')
     onModeChange(newMode)
   }
 
@@ -105,6 +143,22 @@ export const AuthModal = ({
     }
   }
 
+  const handleForgotSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    forgotPasswordMutation.mutate(formState.email)
+  }
+
+  const handleResetSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    if (formState.password !== resetConfirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+    if (resetToken) {
+      resetPasswordMutation.mutate({ token: resetToken, password: formState.password })
+    }
+  }
+
   const isLoading = parentLoading || initMutation.isPending || verifyMutation.isPending || completeMutation.isPending
 
   const isLogin = activeMode === 'login'
@@ -116,16 +170,31 @@ export const AuthModal = ({
           open={open}
           onClose={onClose}
           title={
-            isLogin
+            activeMode === 'login'
               ? 'Welcome back'
-              : step === 'email'
-                ? 'Create Account'
-                : step === 'otp'
-                  ? 'Verify Email'
-                  : 'Complete Profile'
+              : activeMode === 'forgot-password'
+                ? 'Reset Password'
+                : activeMode === 'reset-password'
+                  ? 'New Password'
+                  : step === 'email'
+                    ? 'Create Account'
+                    : step === 'otp'
+                      ? 'Verify Email'
+                      : 'Complete Profile'
           }
         >
-          <form onSubmit={isLogin ? parentSubmit : handleRegisterSubmit} className="space-y-5 p-2">
+          <form
+            onSubmit={
+              isLogin
+                ? parentSubmit
+                : activeMode === 'forgot-password'
+                  ? handleForgotSubmit
+                  : activeMode === 'reset-password'
+                    ? handleResetSubmit
+                    : handleRegisterSubmit
+            }
+            className="space-y-5 p-2"
+          >
 
             {/* Login Form */}
             {isLogin && (
@@ -154,8 +223,50 @@ export const AuthModal = ({
               </>
             )}
 
+            {/* Forgot Password Form */}
+            {activeMode === 'forgot-password' && (
+              <>
+                <p className="text-center text-sm text-[var(--text-muted)]">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  required
+                  className="w-full rounded-2xl border border-[var(--input-border)] bg-[var(--input-bg)] px-5 py-3.5 text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] outline-none transition focus:border-[#3498db]/30 focus:ring-4 focus:ring-[#3498db]/5"
+                  value={formState.email}
+                  onChange={event => onFieldChange('email', event.target.value)}
+                />
+              </>
+            )}
+
+            {/* Reset Password Form */}
+            {activeMode === 'reset-password' && (
+              <>
+                <p className="text-center text-sm text-[var(--text-muted)]">
+                  Please enter your new password below.
+                </p>
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  required
+                  className="w-full rounded-2xl border border-[var(--input-border)] bg-[var(--input-bg)] px-5 py-3.5 text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] outline-none transition focus:border-[#3498db]/30 focus:ring-4 focus:ring-[#3498db]/5"
+                  value={formState.password}
+                  onChange={event => onFieldChange('password', event.target.value)}
+                />
+                <input
+                  type="password"
+                  placeholder="Confirm New Password"
+                  required
+                  className="w-full rounded-2xl border border-[var(--input-border)] bg-[var(--input-bg)] px-5 py-3.5 text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] outline-none transition focus:border-[#3498db]/30 focus:ring-4 focus:ring-[#3498db]/5"
+                  value={resetConfirmPassword}
+                  onChange={event => setResetConfirmPassword(event.target.value)}
+                />
+              </>
+            )}
+
             {/* Registration Wizard */}
-            {!isLogin && (
+            {activeMode === 'register' && (
               <>
                 {step === 'email' && (
                   <input
@@ -240,26 +351,63 @@ export const AuthModal = ({
             >
               {isLoading ? (
                 <Spinner size="sm" />
-              ) : isLogin ? (
+              ) : activeMode === 'login' ? (
                 'Sign In'
-              ) : step === 'email' ? (
-                'Continue'
-              ) : step === 'otp' ? (
-                'Verify'
+              ) : activeMode === 'register' ? (
+                step === 'email' ? 'Continue' : step === 'otp' ? 'Verify' : 'Complete Registration'
+              ) : activeMode === 'forgot-password' ? (
+                'Send Reset Link'
               ) : (
-                'Complete Registration'
+                'Reset Password'
               )}
             </button>
 
             <div className="mt-6 text-center text-xs font-semibold uppercase tracking-widest text-[var(--text-subtle)]">
-              {isLogin ? 'New to Blipzo?' : 'Already onboard?'}{' '}
-              <button
-                type="button"
-                onClick={() => handleModeSwitch(isLogin ? 'register' : 'login')}
-                className="text-[#3498db] underline underline-offset-4"
-              >
-                {isLogin ? 'Sign up' : 'Log in'}
-              </button>
+              {activeMode === 'login' && (
+                <>
+                  <p>
+                    New to Blipzo?{' '}
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('register')}
+                      className="text-[#3498db] underline underline-offset-4"
+                    >
+                      Sign up
+                    </button>
+                  </p>
+                  <p className="mt-3">
+                    Did you forget your password?{' '}
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('forgot-password')}
+                      className="text-[#3498db] underline underline-offset-4"
+                    >
+                      Recover it
+                    </button>
+                  </p>
+                </>
+              )}
+              {activeMode === 'register' && (
+                <>
+                  Already onboard?{' '}
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch('login')}
+                    className="text-[#3498db] underline underline-offset-4"
+                  >
+                    Log in
+                  </button>
+                </>
+              )}
+              {(activeMode === 'forgot-password' || activeMode === 'reset-password') && (
+                <button
+                  type="button"
+                  onClick={() => handleModeSwitch('login')}
+                  className="text-[#3498db] underline underline-offset-4"
+                >
+                  Back to Login
+                </button>
+              )}
             </div>
           </form>
         </Modal>

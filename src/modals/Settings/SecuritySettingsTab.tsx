@@ -57,9 +57,10 @@ export const SecuritySettingsTab = () => {
         mutationFn: emailChangeConfirm,
         onSuccess: (data) => {
             if (user) {
-                setAuth({ ...data, user: data.user })
+                // Update local user state with new email
+                setAuth({ user: { ...user, email: data.email } })
             }
-            toast.success('Email updated successfully')
+            toast.success(data.message || 'Email updated successfully')
             setStep('idle')
             setOtp('')
             setNewEmail('')

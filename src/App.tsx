@@ -2,8 +2,6 @@ import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Route, Routes } from 'react-router-dom'
 import { LandingPage } from './pages/LandingPage/LandingPage'
-import { StartForgotPassword } from './pages/LandingPage/StartForgotPassword'
-import { ResetPassword } from './pages/LandingPage/ResetPassword'
 import { DashboardPage } from './pages/Dashboard/DashboardPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getSession } from './api/auth'
@@ -38,8 +36,8 @@ export default function App() {
     <div className="relative min-h-screen overflow-hidden bg-background font-sans text-neutral antialiased">
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/forgot-password" element={<StartForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/forgot-password" element={<LandingPage />} />
+        <Route path="/reset-password" element={<LandingPage />} />
         <Route
           path="/dashboard"
           element={

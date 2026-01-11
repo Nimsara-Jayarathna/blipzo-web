@@ -86,7 +86,7 @@ export const emailChangeRequestNew = async (changeToken: string, newEmail: strin
 }
 
 export const emailChangeConfirm = async (otp: string) => {
-  const { data } = await apiClient.post<{ user: any }>('/api/v1.1/auth/email/change/confirm', { otp })
+  const { data } = await apiClient.post<{ message: string; email: string }>('/api/v1.1/auth/email/change/confirm', { otp })
   return data
 }
 
