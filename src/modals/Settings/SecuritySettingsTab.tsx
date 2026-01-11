@@ -113,16 +113,16 @@ export const SecuritySettingsTab = () => {
 
                 {/* Email Change Section */}
                 <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/50 p-6">
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <h3 className="text-sm font-medium text-[var(--page-fg)]">Email Address</h3>
-                            <p className="text-sm text-[var(--text-muted)]">{user?.email}</p>
+                            <h3 className="text-base font-medium text-[var(--page-fg)]">Email Address</h3>
+                            <p className="mt-1 text-sm text-[var(--text-muted)]">{user?.email}</p>
                         </div>
                         {step === 'idle' && (
                             <button
                                 onClick={() => initMutation.mutate()}
                                 disabled={isEmailLoading}
-                                className="rounded-lg bg-[var(--surface-glass-thick)] px-4 py-2 text-sm font-medium text-[var(--text-subtle)] hover:bg-[var(--surface-glass-strong)] hover:text-[var(--page-fg)] disabled:opacity-50"
+                                className="rounded-xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-5 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md disabled:opacity-50"
                             >
                                 {isEmailLoading ? <Spinner size="sm" /> : 'Change Email'}
                             </button>
@@ -195,15 +195,15 @@ export const SecuritySettingsTab = () => {
 
                 {/* Password Change Section */}
                 <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/50 p-6">
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <h3 className="text-sm font-medium text-[var(--page-fg)]">Password</h3>
-                            <p className="text-sm text-[var(--text-muted)]">**************</p>
+                            <h3 className="text-base font-medium text-[var(--page-fg)]">Password</h3>
+                            <p className="mt-1 text-sm text-[var(--text-muted)]">**************</p>
                         </div>
                         {!isChangingPassword && (
                             <button
                                 onClick={() => setIsChangingPassword(true)}
-                                className="rounded-lg bg-[var(--surface-glass-thick)] px-4 py-2 text-sm font-medium text-[var(--text-subtle)] hover:bg-[var(--surface-glass-strong)] hover:text-[var(--page-fg)]"
+                                className="rounded-xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-5 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md"
                             >
                                 Change Password
                             </button>
