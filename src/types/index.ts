@@ -20,6 +20,8 @@ export interface UserProfile {
   id: string
   name: string
   email: string
+  fname?: string
+  lname?: string
   currency?: Currency
 }
 
