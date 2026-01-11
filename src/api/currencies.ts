@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient, API_ENDPOINT_PREFIX } from './client'
 import type { Currency } from '../types'
 
 interface GetCurrenciesResponse {
@@ -11,12 +11,12 @@ interface UpdateCurrencyResponse {
 }
 
 export const getSupportedCurrencies = async () => {
-    const { data } = await apiClient.get<GetCurrenciesResponse>('/api/v1.1/currencies')
+    const { data } = await apiClient.get<GetCurrenciesResponse>(`${API_ENDPOINT_PREFIX}/currencies`)
     return data
 }
 
 export const updateUserCurrency = async (currencyId: string) => {
-    const { data } = await apiClient.put<UpdateCurrencyResponse>('/api/v1.1/users/currency', {
+    const { data } = await apiClient.put<UpdateCurrencyResponse>(`${API_ENDPOINT_PREFIX}/users/currency`, {
         currencyId,
     })
     return data

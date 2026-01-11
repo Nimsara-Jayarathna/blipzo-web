@@ -12,6 +12,8 @@ const resolveBaseUrl = () => {
 }
 
 export const API_BASE_URL = resolveBaseUrl()
+export const API_VERSION = import.meta.env.VITE_API_VERSION?.trim() || 'v1.1'
+export const API_ENDPOINT_PREFIX = `/api/${API_VERSION}`
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -27,7 +29,7 @@ const shouldSkipRefresh = (url?: string) => {
   if (!url) {
     return true
   }
-  return ['/api/v1.1/auth/login', '/api/v1.1/auth/register', '/api/v1.1/auth/refresh', '/api/v1.1/auth/logout'].some(path =>
+  return [`${API_ENDPOINT_PREFIX}/auth/login`, `${API_ENDPOINT_PREFIX}/auth/register`, `${API_ENDPOINT_PREFIX}/auth/refresh`, `${API_ENDPOINT_PREFIX}/auth/logout`].some(path =>
     url.includes(path),
   )
 }
@@ -37,7 +39,7 @@ let refreshRequest: Promise<void> | null = null
 const refreshSession = async () => {
   if (!refreshRequest) {
     refreshRequest = apiClient
-      .post('/api/v1.1/auth/refresh')
+      .post(`${API_ENDPOINT_PREFIX}/auth/refresh`)
       .then(() => { })
       .finally(() => {
         refreshRequest = null

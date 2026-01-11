@@ -1,41 +1,41 @@
-import { apiClient } from './client'
+import { apiClient, API_ENDPOINT_PREFIX } from './client'
 import type { AuthCredentials, AuthResponse, SessionResponse } from '../types'
 
 // --- Login / Session ---
 
 export const login = async (credentials: AuthCredentials) => {
-  const { data } = await apiClient.post<AuthResponse>('/api/v1.1/auth/login', credentials)
+  const { data } = await apiClient.post<AuthResponse>(`${API_ENDPOINT_PREFIX}/auth/login`, credentials)
   return data
 }
 
 export const getSession = async () => {
-  const { data } = await apiClient.get<SessionResponse>('/api/v1.1/auth/session')
+  const { data } = await apiClient.get<SessionResponse>(`${API_ENDPOINT_PREFIX}/auth/session`)
   return data
 }
 
 export const refreshSession = async () => {
-  const { data } = await apiClient.post<AuthResponse>('/api/v1.1/auth/refresh')
+  const { data } = await apiClient.post<AuthResponse>(`${API_ENDPOINT_PREFIX}/auth/refresh`)
   return data
 }
 
 export const logoutSession = async () => {
-  await apiClient.post('/api/v1.1/auth/logout')
+  await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/logout`)
 }
 
 // --- Registration Wizard ---
 
 export const registerInit = async (email: string) => {
-  const { data } = await apiClient.post('/api/v1.1/auth/register/init', { email })
+  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/register/init`, { email })
   return data
 }
 
 export const registerVerify = async (email: string, otp: string) => {
-  const { data } = await apiClient.post<{ registrationToken: string }>('/api/v1.1/auth/register/verify', { email, otp })
+  const { data } = await apiClient.post<{ registrationToken: string }>(`${API_ENDPOINT_PREFIX}/auth/register/verify`, { email, otp })
   return data
 }
 
 export const registerComplete = async (token: string, details: Partial<AuthCredentials> & { fname: string; lname: string }) => {
-  const { data } = await apiClient.post<AuthResponse>('/api/v1.1/auth/register/complete', {
+  const { data } = await apiClient.post<AuthResponse>(`${API_ENDPOINT_PREFIX}/auth/register/complete`, {
     registrationToken: token,
     ...details,
   })
@@ -46,7 +46,7 @@ export const registerComplete = async (token: string, details: Partial<AuthCrede
  * @deprecated Legacy single-step register, kept just in case, but unused in v1.1 flow
  */
 export const register = async (credentials: AuthCredentials) => {
-  const { data } = await apiClient.post<AuthResponse>('/api/v1.1/auth/register', credentials)
+  const { data } = await apiClient.post<AuthResponse>(`${API_ENDPOINT_PREFIX}/auth/register`, credentials)
   return data
 }
 
@@ -54,39 +54,39 @@ export const register = async (credentials: AuthCredentials) => {
 
 export const passwordForgot = async (email: string) => {
   // Always returns success status for security
-  const { data } = await apiClient.post('/api/v1.1/auth/password/forgot', { email })
+  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/password/forgot`, { email })
   return data
 }
 
 export const passwordReset = async (token: string, password: string) => {
-  const { data } = await apiClient.post('/api/v1.1/auth/password/reset', { token, password })
+  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/password/reset`, { token, password })
   return data
 }
 
 export const changePassword = async (currentPassword: string, newPassword: string) => {
-  const { data } = await apiClient.post('/api/v1.1/auth/password/change', { currentPassword, newPassword })
+  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/password/change`, { currentPassword, newPassword })
   return data
 }
 
 // --- Email Change ---
 
 export const emailChangeInit = async () => {
-  const { data } = await apiClient.post('/api/v1.1/auth/email/change/init')
+  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/email/change/init`)
   return data
 }
 
 export const emailChangeVerifyCurrent = async (otp: string) => {
-  const { data } = await apiClient.post<{ changeToken: string }>('/api/v1.1/auth/email/change/verify-current', { otp })
+  const { data } = await apiClient.post<{ changeToken: string }>(`${API_ENDPOINT_PREFIX}/auth/email/change/verify-current`, { otp })
   return data
 }
 
 export const emailChangeRequestNew = async (changeToken: string, newEmail: string) => {
-  const { data } = await apiClient.post('/api/v1.1/auth/email/change/request-new', { changeToken, newEmail })
+  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/email/change/request-new`, { changeToken, newEmail })
   return data
 }
 
 export const emailChangeConfirm = async (otp: string) => {
-  const { data } = await apiClient.post<{ message: string; email: string }>('/api/v1.1/auth/email/change/confirm', { otp })
+  const { data } = await apiClient.post<{ message: string; email: string }>(`${API_ENDPOINT_PREFIX}/auth/email/change/confirm`, { otp })
   return data
 }
 
