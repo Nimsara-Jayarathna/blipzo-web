@@ -10,7 +10,7 @@ interface SettingsModalProps {
   onClose: () => void
 }
 
-type SettingsTab = 'categories' | 'currency'
+type SettingsTab = 'categories' | 'profile'
 
 export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('categories')
@@ -23,8 +23,8 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       icon: faTags,
     },
     {
-      id: 'currency',
-      label: 'Currency',
+      id: 'profile',
+      label: 'Profile',
       icon: faCoins,
     },
   ]
@@ -60,7 +60,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
               onAddCategoryClose={() => setAddCategoryOpen(false)}
               onAddCategoryOpen={() => setAddCategoryOpen(true)}
             />
-          ) : activeTab === 'currency' ? (
+          ) : activeTab === 'profile' ? (
             <ProfileSettingsTab />
           ) : null}
         </div>
