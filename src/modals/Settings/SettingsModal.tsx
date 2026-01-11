@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { SettingsCategoriesTab } from './SettingsCategoriesTab'
-import { ProfileSettingsTab } from './ProfileSettingsTab'
+import { CurrencySettingsTab } from './CurrencySettingsTab'
+import { SecuritySettingsTab } from './SecuritySettingsTab'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCoins, faTags } from '@fortawesome/free-solid-svg-icons'
+import { faCoins, faTags, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 
 interface SettingsModalProps {
   open: boolean
   onClose: () => void
 }
 
-type SettingsTab = 'categories' | 'profile'
+type SettingsTab = 'categories' | 'currency' | 'security'
 
 export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('categories')
@@ -23,9 +24,14 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       icon: faTags,
     },
     {
-      id: 'profile',
-      label: 'Profile',
+      id: 'currency',
+      label: 'Currency',
       icon: faCoins,
+    },
+    {
+      id: 'security',
+      label: 'Security',
+      icon: faShieldHalved,
     },
   ]
 
@@ -60,8 +66,10 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
               onAddCategoryClose={() => setAddCategoryOpen(false)}
               onAddCategoryOpen={() => setAddCategoryOpen(true)}
             />
-          ) : activeTab === 'profile' ? (
-            <ProfileSettingsTab />
+          ) : activeTab === 'currency' ? (
+            <CurrencySettingsTab />
+          ) : activeTab === 'security' ? (
+            <SecuritySettingsTab />
           ) : null}
         </div>
       </div>

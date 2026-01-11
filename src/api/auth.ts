@@ -63,6 +63,11 @@ export const passwordReset = async (token: string, password: string) => {
   return data
 }
 
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+  const { data } = await apiClient.post('/api/v1.1/auth/password/change', { currentPassword, newPassword })
+  return data
+}
+
 // --- Email Change ---
 
 export const emailChangeInit = async () => {
