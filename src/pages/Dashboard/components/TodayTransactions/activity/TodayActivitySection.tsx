@@ -13,6 +13,7 @@ interface TodayActivitySectionProps {
   balance: number
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
+  currency?: string
 }
 
 export const TodayActivitySection = ({
@@ -23,10 +24,11 @@ export const TodayActivitySection = ({
   balance,
   onDeleteTransaction,
   isDeleting,
+  currency,
 }: TodayActivitySectionProps) => {
   return (
     <div className="space-y-6">
-      <TodaySummaryCards income={income} expense={expense} balance={balance} />
+      <TodaySummaryCards income={income} expense={expense} balance={balance} currency={currency} />
       <section className="rounded-4xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-6 shadow-card backdrop-blur-xl">
         <ListHeader title="Today's Activity" />
 
@@ -37,6 +39,7 @@ export const TodayActivitySection = ({
             transactions={transactions}
             onDeleteTransaction={onDeleteTransaction}
             isDeleting={isDeleting}
+            currency={currency}
           />
         ) : (
           <EmptyState

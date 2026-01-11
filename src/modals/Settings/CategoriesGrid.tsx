@@ -1,6 +1,8 @@
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Spinner } from '../../components/Spinner'
 import type { Category } from '../../types'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 interface CategoriesGridProps {
   isLoading: boolean
@@ -32,131 +34,114 @@ export const CategoriesGrid = ({
 
   const grouped = [
     {
-      title: 'Income categories',
-      description: 'Organize how you track money coming in.',
+      title: 'Income',
+      description: 'Track money coming in.',
       items: categories.filter(item => item.type === 'income'),
       isIncome: true,
-      emptyState: "No income categories yet. Add one above to track salary, sales, or other inflows.",
+      emptyState: "No income categories yet.",
     },
     {
-      title: 'Expense categories',
-      description: 'Break down your spending to see patterns clearly.',
+      title: 'Expenses',
+      description: 'Track your spending.',
       items: categories.filter(item => item.type === 'expense'),
       isIncome: false,
-      emptyState: "No expense categories yet. Add one above to track bills, groceries, or other outflows.",
+      emptyState: "No expense categories yet.",
     },
   ]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-        {grouped.map(column => {
-          const badgeClasses = column.isIncome
-            ? 'border-income/40 bg-income/10 text-income'
-            : 'border-expense/40 bg-expense/10 text-expense'
-          const emptyState = column.emptyState
-
+    <div className="grid h-full gap-8 overflow-hidden sm:grid-cols-2">
+      {grouped.map(column => {
         const countLabel = typeof limit === 'number' ? `${column.items.length}/${limit}` : `${column.items.length}`
 
         return (
-          <div
-            key={column.title}
-            className="flex flex-col gap-3 rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-5 shadow-[0_24px_70px_-45px_rgba(15,23,42,0.25)] backdrop-blur"
-          >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-[var(--page-fg)]">{column.title}</h3>
-                  <p className="text-xs text-[var(--text-muted)]">{column.description}</p>
-                </div>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-medium ${
-                    column.isIncome
-                      ? 'border-income/40 bg-income/10 text-income'
-                      : 'border-expense/40 bg-expense/10 text-expense'
-                  }`}
-                >
-                  {countLabel}
-                </span>
+          <div key={column.title} className="flex h-full flex-col gap-4 overflow-hidden">
+            <div className="flex shrink-0 items-end justify-between border-b border-[var(--border-glass)] pb-2">
+              <div>
+                <h3 className="font-semibold text-[var(--page-fg)]">{column.title}</h3>
+                <p className="text-xs text-[var(--text-muted)]">{column.description}</p>
               </div>
-              <ul className="max-h-[320px] space-y-3 overflow-y-auto pr-1">
-                {column.items.length ? (
-                  column.items.map(category => {
-                    const categoryId = resolveCategoryId(category)
-                    const isDeleting = deleteMutation.isPending && deleteMutation.variables === categoryId
-                    const initials = category.name?.[0]?.toUpperCase() ?? '?'
-                    const isDefault = Boolean(category.isDefault)
-                    const canDelete = !isDefault
-
-                    return (
-                      <li
-                        key={categoryId}
-                        className="group flex flex-col gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-glass)] px-4 py-3 text-sm text-[var(--page-fg)] shadow-[0_18px_45px_-35px_rgba(15,23,42,0.3)] transition hover:border-accent/30 hover:shadow-soft sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`flex h-10 w-10 items-center justify-center rounded-2xl border text-sm font-semibold ${badgeClasses}`}
-                          >
-                            {initials}
-                          </span>
-                          <div className="flex flex-col">
-                            <span className="font-medium text-[var(--page-fg)]">{category.name}</span>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
-                              {category.isDefault ? (
-                                <span className="rounded-full bg-surfaceMuted px-2 py-0.5 text-[11px] font-medium text-[var(--text-muted)]">
-                                  Default
-                                </span>
-                              ) : null}
-                              {category.isActive === false ? (
-                                <span className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium text-[var(--text-muted)]">
-                                  Inactive
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 self-end sm:self-center">
-                          <button
-                            type="button"
-                            onClick={() => onSetDefault(category)}
-                            disabled={isDefault || isSettingDefault}
-                            className={`inline-flex items-center justify-center text-[34px] transition ${
-                              isDefault
-                                ? 'text-yellow-500 cursor-default'
-                                : 'text-slate-400 group-hover:text-yellow-500'
-                            } disabled:cursor-not-allowed disabled:opacity-70`}
-                            aria-label={isDefault ? 'Default category' : 'Set as default'}
-                          >
-                            <span>{isDefault ? '★' : '☆'}</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (canDelete) {
-                                onDelete(category)
-                              }
-                            }}
-                            className={`inline-flex items-center justify-center text-[34px] transition ${
-                              canDelete
-                                ? 'text-slate-400 group-hover:text-expense'
-                                : 'text-muted cursor-not-allowed'
-                            } disabled:cursor-not-allowed disabled:opacity-70`}
-                            disabled={isDeleting || !canDelete}
-                            aria-label={canDelete ? 'Remove category' : 'Cannot remove default category'}
-                          >
-                            {isDeleting && canDelete ? <Spinner size="sm" /> : <span className="leading-none">×</span>}
-                          </button>
-                        </div>
-                      </li>
-                    )
-                  })
-                ) : (
-                  <li className="rounded-2xl border border-dashed border-[var(--border-soft)] bg-[var(--surface-glass)] px-4 py-6 text-center text-xs text-[var(--text-muted)]">
-                    {emptyState}
-                  </li>
-                )}
-              </ul>
+              <span className="text-xs font-medium text-[var(--text-muted)]">
+                {countLabel}
+              </span>
             </div>
-          )
-        })}
+
+            <ul className="flex-1 space-y-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-accent/10 scrollbar-track-transparent">
+              {column.items.length ? (
+                column.items.map(category => {
+                  const categoryId = resolveCategoryId(category)
+                  const isDeleting = deleteMutation.isPending && deleteMutation.variables === categoryId
+                  const initials = category.name?.[0]?.toUpperCase() ?? '?'
+                  const isDefault = Boolean(category.isDefault)
+                  const canDelete = !isDefault
+
+                  return (
+                    <li
+                      key={categoryId}
+                      className="group flex items-center justify-between rounded-xl px-3 py-2 transition hover:bg-[var(--surface-glass-thick)]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${column.isIncome
+                            ? 'bg-emerald-500/10 text-emerald-500'
+                            : 'bg-red-500/10 text-red-500'
+                            }`}
+                        >
+                          {initials}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-[var(--page-fg)]">{category.name}</span>
+                          {category.isDefault && (
+                            <span className="text-[10px] text-[var(--text-muted)]">Default</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onSetDefault(category)}
+                          disabled={isDefault || isSettingDefault}
+                          className={`flex h-8 w-8 items-center justify-center rounded-full transition ${isDefault
+                            ? 'text-yellow-400 opacity-100'
+                            : 'text-[var(--text-subtle)] hover:bg-[var(--surface-glass)] hover:text-yellow-400'
+                            } disabled:cursor-not-allowed`}
+                          title={isDefault ? 'Default category' : 'Set as default'}
+                        >
+                          <FontAwesomeIcon icon={faStar} className={isDefault ? 'text-sm' : 'text-xs'} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (canDelete) onDelete(category)
+                          }}
+                          disabled={isDeleting || !canDelete}
+                          className={`flex h-8 w-8 items-center justify-center rounded-full transition ${canDelete
+                            ? 'text-[var(--text-subtle)] hover:bg-red-500/10 hover:text-red-500'
+                            : 'cursor-not-allowed text-[var(--text-subtle)] opacity-50'
+                            }`}
+                          title={canDelete ? 'Delete category' : 'Cannot delete default'}
+                        >
+                          {isDeleting ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <FontAwesomeIcon icon={faTrash} className="text-xs" />
+                          )}
+                        </button>
+                      </div>
+                    </li>
+                  )
+                })
+              ) : (
+                <li className="py-8 text-center text-xs text-[var(--text-muted)]">
+                  {column.emptyState}
+                </li>
+              )}
+            </ul>
+          </div>
+        )
+      })}
     </div>
   )
 }

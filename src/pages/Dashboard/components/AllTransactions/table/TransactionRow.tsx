@@ -13,6 +13,7 @@ interface TransactionRowProps {
   transaction: Transaction
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
+  currency?: string
 }
 
 interface DeleteActionCellProps {
@@ -59,6 +60,7 @@ export const TransactionRow = ({
   onDeleteTransaction,
   isDeleting,
   forceDeletable = false,
+  currency,
 }: TransactionRowComponentProps) => {
   const isIncome = transaction.type === 'income'
   const canDelete = !!onDeleteTransaction && (forceDeletable || isToday(transaction.date))
@@ -76,7 +78,7 @@ export const TransactionRow = ({
         className={`px-4 py-3 text-right text-sm font-semibold ${isIncome ? 'text-income' : 'text-expense'}`}
       >
         {isIncome ? '+' : '-'}
-        {formatCurrency(Math.abs(transaction.amount))}
+        {formatCurrency(Math.abs(transaction.amount), currency)}
       </td>
       <td
         className="max-w-[360px] truncate px-4 py-3 text-sm text-[var(--text-muted)]"

@@ -7,6 +7,7 @@ interface SummaryCardProps {
   icon: ReactNode
   accent?: 'income' | 'expense' | 'balance'
   highlight?: string
+  currency?: string
 }
 
 const accentStyles = {
@@ -30,7 +31,7 @@ const accentStyles = {
   },
 }
 
-export const SummaryCard = ({ title, amount, icon, accent = 'balance', highlight }: SummaryCardProps) => {
+export const SummaryCard = ({ title, amount, icon, accent = 'balance', highlight, currency }: SummaryCardProps) => {
   const styles = accentStyles[accent]
   const cleanTitle = title.replace(/today's/gi, '').trim()
 
@@ -65,7 +66,7 @@ export const SummaryCard = ({ title, amount, icon, accent = 'balance', highlight
             {cleanTitle}
           </p>
           <h3 className="text-2xl font-bold tracking-tight text-[var(--page-fg)] leading-none">
-            {formatCurrency(amount)}
+            {formatCurrency(amount, currency)}
           </h3>
         </div>
 

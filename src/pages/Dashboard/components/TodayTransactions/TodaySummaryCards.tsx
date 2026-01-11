@@ -6,9 +6,10 @@ interface TodaySummaryCardsProps {
   income: number
   expense: number
   balance: number
+  currency?: string
 }
 
-export const TodaySummaryCards = ({ income, expense, balance }: TodaySummaryCardsProps) => {
+export const TodaySummaryCards = ({ income, expense, balance, currency }: TodaySummaryCardsProps) => {
   const cards = [
     {
       title: "Today's income",
@@ -43,6 +44,7 @@ export const TodaySummaryCards = ({ income, expense, balance }: TodaySummaryCard
           accent={card.accent}
           icon={card.icon}
           highlight={card.highlight}
+          currency={currency}
         />
       ))}
     </div>

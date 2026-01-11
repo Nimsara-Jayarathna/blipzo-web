@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { LoadingSpinner } from '../../components/LoadingSpinner'
+import { IconSpinner } from '../../components/IconSpinner'
 import { getCategories, deleteCategory, setDefaultCategory } from '../../api/categories'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import { mapApiError } from '../../utils/errors'
@@ -12,11 +12,12 @@ import { AddCategoryModal } from './AddCategoryModal'
 interface SettingsCategoriesTabProps {
     isAddCategoryOpen: boolean
     onAddCategoryClose: () => void
+    onAddCategoryOpen: () => void
 }
 
 const categoryKey = ['categories']
 
-export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose }: SettingsCategoriesTabProps) => {
+export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, onAddCategoryOpen }: SettingsCategoriesTabProps) => {
     const queryClient = useQueryClient()
     const [defaultIncomeId, setDefaultIncomeId] = useState('')
     const [defaultExpenseId, setDefaultExpenseId] = useState('')
@@ -117,10 +118,25 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose }:
     }
 
     return (
-        <div className="relative">
-            <div className="space-y-5">
+        <div className="relative flex h-full flex-col">
+            <div className="mb-6 flex shrink-0 items-center justify-between">
+                <div>
+                    <h3 className="text-lg font-semibold text-[var(--page-fg)]">Categories</h3>
+                    <p className="text-sm text-[var(--text-muted)]">Manage your income and expense categories</p>
+                </div>
+                <button
+                    type="button"
+                    onClick={onAddCategoryOpen}
+                    className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-glass)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition hover:bg-accent hover:text-white"
+                >
+                    <span className="text-lg leading-none">+</span>
+                    <span>Add New</span>
+                </button>
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col space-y-5">
                 {uiError || isError ? (
-                    <div className="flex justify-center">
+                    <div className="flex shrink-0 justify-center">
                         <ErrorBanner
                             message={(uiError ?? mapApiError(error)).message}
                             detail={(uiError ?? mapApiError(error)).detail}
@@ -130,22 +146,24 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose }:
                     </div>
                 ) : null}
 
-                <CategoriesGrid
-                    isLoading={isLoading}
-                    categories={categories}
-                    limit={categoriesLimit}
-                    deleteMutation={deleteMutation}
-                    resolveCategoryId={resolveCategoryId}
-                    onDelete={handleDelete}
-                    onSetDefault={handleSetDefault}
-                    isSettingDefault={setDefaultMutation.isPending}
-                />
+                <div className="min-h-0 flex-1">
+                    <CategoriesGrid
+                        isLoading={isLoading}
+                        categories={categories}
+                        limit={categoriesLimit}
+                        deleteMutation={deleteMutation}
+                        resolveCategoryId={resolveCategoryId}
+                        onDelete={handleDelete}
+                        onSetDefault={handleSetDefault}
+                        isSettingDefault={setDefaultMutation.isPending}
+                    />
+                </div>
             </div>
 
             {(isLoading || isFetching || deleteMutation.isPending || setDefaultMutation.isPending) && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--surface-glass)] backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-3">
-                        <LoadingSpinner />
+                        <IconSpinner className="text-4xl text-accent" />
                         <p className="text-xs font-medium text-[var(--text-muted)]">Updating categories...</p>
                     </div>
                 </div>

@@ -17,6 +17,7 @@ export const AllTransactionsPage = ({
   onFiltersChange,
   onDeleteTransaction,
   isDeleting,
+  currency,
 }: AllTransactionsPageProps) => {
   const [grouping, setGrouping] = useState<Grouping>('none')
 
@@ -77,6 +78,7 @@ export const AllTransactionsPage = ({
           grouped={grouped ?? undefined}
           onDeleteTransaction={onDeleteTransaction}
           isDeleting={isDeleting}
+          currency={currency}
         />
       )}
     </section>
