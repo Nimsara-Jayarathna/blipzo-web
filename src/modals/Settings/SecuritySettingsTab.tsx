@@ -1,260 +1,73 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import { emailChangeInit, emailChangeVerifyCurrent, emailChangeRequestNew, emailChangeConfirm, changePassword } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
-import { Spinner } from '../../components/Spinner'
-
-type EmailChangeStep = 'idle' | 'verify-current' | 'enter-new' | 'verify-new'
+import { ChangeEmailModal } from './ChangeEmailModal'
+import { ChangePasswordModal } from './ChangePasswordModal'
 
 export const SecuritySettingsTab = () => {
-    const { user, setAuth } = useAuth()
-
-    // Email Change State
-    const [step, setStep] = useState<EmailChangeStep>('idle')
-    const [otp, setOtp] = useState('')
-    const [newEmail, setNewEmail] = useState('')
-    const [changeToken, setChangeToken] = useState('')
-
-    // Password Change State
-    const [isChangingPassword, setIsChangingPassword] = useState(false)
-    const [currentPassword, setCurrentPassword] = useState('')
-    const [newPassword, setNewPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-
-    // --- Email Mutations ---
-    const initMutation = useMutation({
-        mutationFn: emailChangeInit,
-        onSuccess: () => {
-            toast.success('OTP sent to current email')
-            setStep('verify-current')
-            setOtp('')
-        },
-        onError: () => toast.error('Failed to initiate email change'),
-    })
-
-    const verifyCurrentMutation = useMutation({
-        mutationFn: emailChangeVerifyCurrent,
-        onSuccess: (data) => {
-            setChangeToken(data.changeToken)
-            setStep('enter-new')
-            setOtp('')
-        },
-        onError: () => toast.error('Invalid OTP'),
-    })
-
-    const requestNewMutation = useMutation({
-        mutationFn: () => emailChangeRequestNew(changeToken, newEmail),
-        onSuccess: () => {
-            toast.success('OTP sent to new email')
-            setStep('verify-new')
-            setOtp('')
-        },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to request change'),
-    })
-
-    const confirmMutation = useMutation({
-        mutationFn: emailChangeConfirm,
-        onSuccess: (data) => {
-            if (user) {
-                // Update local user state with new email
-                setAuth({ user: { ...user, email: data.email } })
-            }
-            toast.success(data.message || 'Email updated successfully')
-            setStep('idle')
-            setOtp('')
-            setNewEmail('')
-        },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to confirm email'),
-    })
-
-    const handleEmailAction = () => {
-        if (step === 'idle') {
-            initMutation.mutate()
-        } else if (step === 'verify-current') {
-            verifyCurrentMutation.mutate(otp)
-        } else if (step === 'enter-new') {
-            if (!newEmail) return toast.error('Enter a valid email')
-            requestNewMutation.mutate()
-        } else if (step === 'verify-new') {
-            confirmMutation.mutate(otp)
-        }
-    }
-
-    const isEmailLoading =
-        initMutation.isPending ||
-        verifyCurrentMutation.isPending ||
-        requestNewMutation.isPending ||
-        confirmMutation.isPending
-
-    // --- Password Mutation ---
-    const passwordMutation = useMutation({
-        mutationFn: () => changePassword(currentPassword, newPassword),
-        onSuccess: () => {
-            toast.success('Password changed successfully')
-            setIsChangingPassword(false)
-            setCurrentPassword('')
-            setNewPassword('')
-            setConfirmPassword('')
-        },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to change password'),
-    })
-
-    const handlePasswordSubmit = () => {
-        if (newPassword.length < 6) return toast.error('Password too short')
-        if (newPassword !== confirmPassword) return toast.error('Passwords do not match')
-        passwordMutation.mutate()
-    }
+    const { user } = useAuth()
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
 
     return (
-        <div className="space-y-8 overflow-y-auto pr-2">
+        <div className="space-y-6 overflow-y-auto pr-2">
             <section>
-                <h2 className="mb-4 text-base font-semibold text-[var(--page-fg)]">Account Security</h2>
-
-                {/* Email Change Section */}
-                <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/50 p-6">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h3 className="text-base font-medium text-[var(--page-fg)]">Email Address</h3>
-                            <p className="mt-1 text-sm text-[var(--text-muted)]">{user?.email}</p>
-                        </div>
-                        {step === 'idle' && (
-                            <button
-                                onClick={() => initMutation.mutate()}
-                                disabled={isEmailLoading}
-                                className="rounded-xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-5 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md disabled:opacity-50"
-                            >
-                                {isEmailLoading ? <Spinner size="sm" /> : 'Change Email'}
-                            </button>
-                        )}
-                    </div>
-
-                    {step !== 'idle' && (
-                        <div className="mt-4 animate-in fade-in slide-in-from-top-4">
-                            <div className="rounded-xl bg-[var(--surface-glass-thick)] p-4">
-                                {step === 'verify-current' && (
-                                    <>
-                                        <p className="mb-3 text-sm text-[var(--text-muted)]">To secure your account, please enter the code sent to <strong>{user?.email}</strong>.</p>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter OTP"
-                                            value={otp}
-                                            onChange={(e) => setOtp(e.target.value)}
-                                            maxLength={6}
-                                            className="mb-3 w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-2 text-sm outline-none focus:border-[#3498db]"
-                                        />
-                                    </>
-                                )}
-
-                                {step === 'enter-new' && (
-                                    <>
-                                        <p className="mb-3 text-sm text-[var(--text-muted)]">Enter the new email address you would like to use.</p>
-                                        <input
-                                            type="email"
-                                            placeholder="new@email.com"
-                                            value={newEmail}
-                                            onChange={(e) => setNewEmail(e.target.value)}
-                                            className="mb-3 w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-2 text-sm outline-none focus:border-[#3498db]"
-                                        />
-                                    </>
-                                )}
-
-                                {step === 'verify-new' && (
-                                    <>
-                                        <p className="mb-3 text-sm text-[var(--text-muted)]">Almost there! Enter the code sent to <strong>{newEmail}</strong>.</p>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter OTP"
-                                            value={otp}
-                                            onChange={(e) => setOtp(e.target.value)}
-                                            maxLength={6}
-                                            className="mb-3 w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-2 text-sm outline-none focus:border-[#3498db]"
-                                        />
-                                    </>
-                                )}
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={handleEmailAction}
-                                        disabled={isEmailLoading}
-                                        className="flex-1 rounded-lg bg-[#3498db] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-[#2980b9] disabled:opacity-50"
-                                    >
-                                        {isEmailLoading ? <Spinner size="sm" /> : 'Continue'}
-                                    </button>
-                                    <button
-                                        onClick={() => { setStep('idle'); setOtp(''); setNewEmail('') }}
-                                        className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-500"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                <div className="mb-6">
+                    <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Account Security</h2>
+                    <p className="text-sm text-[var(--text-muted)]">Manage your account credentials and security preferences.</p>
                 </div>
 
-                {/* Password Change Section */}
-                <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/50 p-6">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h3 className="text-base font-medium text-[var(--page-fg)]">Password</h3>
-                            <p className="mt-1 text-sm text-[var(--text-muted)]">**************</p>
-                        </div>
-                        {!isChangingPassword && (
-                            <button
-                                onClick={() => setIsChangingPassword(true)}
-                                className="rounded-xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-5 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md"
-                            >
-                                Change Password
-                            </button>
-                        )}
-                    </div>
-
-                    {isChangingPassword && (
-                        <div className="mt-4 animate-in fade-in slide-in-from-top-4">
-                            <div className="space-y-3 rounded-xl bg-[var(--surface-glass-thick)] p-4">
-                                <input
-                                    type="password"
-                                    placeholder="Current Password"
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-2 text-sm outline-none focus:border-[#3498db]"
-                                />
-                                <input
-                                    type="password"
-                                    placeholder="New Password"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-2 text-sm outline-none focus:border-[#3498db]"
-                                />
-                                <input
-                                    type="password"
-                                    placeholder="Confirm New Password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-2 text-sm outline-none focus:border-[#3498db]"
-                                />
-
-                                <div className="flex gap-3 pt-2">
-                                    <button
-                                        onClick={handlePasswordSubmit}
-                                        disabled={passwordMutation.isPending}
-                                        className="flex-1 rounded-lg bg-[#3498db] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-[#2980b9] disabled:opacity-50"
-                                    >
-                                        {passwordMutation.isPending ? <Spinner size="sm" /> : 'Update Password'}
-                                    </button>
-                                    <button
-                                        onClick={() => { setIsChangingPassword(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }}
-                                        className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-500"
-                                    >
-                                        Cancel
-                                    </button>
+                <div className="grid gap-6">
+                    {/* Email Change Section */}
+                    <div className="group relative overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass)]/30 p-1 transition-all hover:border-[var(--border-glass-strong)] hover:shadow-lg hover:shadow-black/5">
+                        <div className="relative rounded-[1.4rem] bg-[var(--page-bg)]/40 p-6 backdrop-blur-xl">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h3 className="text-base font-semibold text-[var(--page-fg)]">Email Address</h3>
+                                    <p className="text-sm text-[var(--text-muted)] group-hover:text-[var(--text-subtle)] transition-colors">
+                                        {user?.email}
+                                    </p>
                                 </div>
+                                <button
+                                    onClick={() => setIsEmailModalOpen(true)}
+                                    className="relative overflow-hidden rounded-xl bg-[var(--surface-glass-thick)] px-6 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm ring-1 ring-inset ring-[var(--border-glass)] transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md hover:ring-[var(--border-glass-strong)] active:scale-95"
+                                >
+                                    Change Email
+                                </button>
                             </div>
                         </div>
-                    )}
+                    </div>
+
+                    {/* Password Change Section */}
+                    <div className="group relative overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass)]/30 p-1 transition-all hover:border-[var(--border-glass-strong)] hover:shadow-lg hover:shadow-black/5">
+                        <div className="relative rounded-[1.4rem] bg-[var(--page-bg)]/40 p-6 backdrop-blur-xl">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h3 className="text-base font-semibold text-[var(--page-fg)]">Password</h3>
+                                    <p className="text-sm text-[var(--text-muted)] group-hover:text-[var(--text-subtle)] transition-colors">
+                                        Update your password securely
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setIsPasswordModalOpen(true)}
+                                    className="relative overflow-hidden rounded-xl bg-[var(--surface-glass-thick)] px-6 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm ring-1 ring-inset ring-[var(--border-glass)] transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md hover:ring-[var(--border-glass-strong)] active:scale-95"
+                                >
+                                    Change Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
+
+            <ChangeEmailModal
+                open={isEmailModalOpen}
+                onClose={() => setIsEmailModalOpen(false)}
+            />
+
+            <ChangePasswordModal
+                open={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+            />
         </div>
     )
 }

@@ -10,6 +10,7 @@ interface ModalProps {
   footer?: ReactNode
   headerActions?: ReactNode
   widthClassName?: string
+  zIndex?: string
 }
 
 export const Modal = ({
@@ -21,6 +22,7 @@ export const Modal = ({
   footer,
   headerActions,
   widthClassName = 'max-w-lg',
+  zIndex = 'z-50',
 }: ModalProps) => {
   useEffect(() => {
     if (open) {
@@ -37,7 +39,7 @@ export const Modal = ({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          className={`fixed inset-0 flex items-center justify-center p-4 sm:p-6 ${zIndex}`}
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
