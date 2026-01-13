@@ -36,6 +36,8 @@ export default function App() {
     <div className="relative min-h-screen overflow-hidden bg-background font-sans text-neutral antialiased">
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/forgot-password" element={<LandingPage />} />
+        <Route path="/reset-password" element={<LandingPage />} />
         <Route
           path="/dashboard"
           element={

@@ -32,8 +32,8 @@ export const AppNavbar = ({
   const headerClass = isLanding
     ? 'relative z-50'
     : 'sticky top-0 z-40 border-b border-[var(--border-glass)] bg-[var(--surface-glass)] backdrop-blur-md'
-  const containerClass = `mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 ${
-    isLanding ? 'px-8 py-8' : 'px-6 py-4'
+  const containerClass = `mx-auto flex max-w-7xl items-center justify-between gap-3 ${
+    isLanding ? 'px-4 py-4 sm:px-8 sm:py-8' : 'px-4 py-3 sm:px-6 sm:py-4'
   }`
   const itemClass =
     'inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-2 text-sm font-medium text-[var(--page-fg)] backdrop-blur-md transition hover:border-accent/40 hover:text-accent'

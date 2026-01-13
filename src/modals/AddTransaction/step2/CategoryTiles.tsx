@@ -30,7 +30,7 @@ export const CategoryTiles = ({ categories, selectedCategoryId, isLoading, onSel
   }
 
   return (
-    <div className="grid grid-cols-5 gap-3">
+    <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
       {categories.slice(0, 10).map(category => {
         const isSelected = selectedCategoryId === category.id
         const isDefaultForType = Boolean(category.isDefault)

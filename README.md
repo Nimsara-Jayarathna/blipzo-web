@@ -8,6 +8,10 @@ React + Vite + Tailwind + TypeScript frontend for the Blipzo expense tracker. It
 - Transactions list, summary cards, analytics views, and modals for settings/reports/adding transactions.
 - API client with automatic session refresh using HttpOnly cookies.
 
+## Release Notes
+Detailed release notes for each version can be found in the [docs/releases](docs/releases/) directory.
+- Latest Release: [v1.0.0](docs/releases/v1.0.0.md)
+
 ## Project structure (high level)
 ```
 .

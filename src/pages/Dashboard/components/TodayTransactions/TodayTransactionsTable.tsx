@@ -6,16 +6,19 @@ interface TodayTransactionsTableProps {
   transactions: Transaction[]
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
+  currency?: string
 }
 
 export const TodayTransactionsTable = ({
   transactions,
   onDeleteTransaction,
   isDeleting,
+  currency,
 }: TodayTransactionsTableProps) => {
   return (
-    <div className="overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] shadow-soft backdrop-blur-xl">
-      <table className="w-full table-fixed text-left">
+    <div className="-mx-4 overflow-x-auto sm:mx-0 sm:overflow-hidden sm:rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] shadow-soft backdrop-blur-xl">
+      <div className="inline-block min-w-full align-middle">
+        <table className="min-w-full table-fixed text-left">
         <colgroup>
           <col className="w-[140px]" />
           <col className="w-[240px]" />
@@ -38,11 +41,13 @@ export const TodayTransactionsTable = ({
                 onDeleteTransaction={onDeleteTransaction}
                 isDeleting={isDeleting}
                 forceDeletable
+                currency={currency}
               />
             )
           })}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   )
 }

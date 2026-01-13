@@ -30,6 +30,8 @@ export const DashboardPage = () => {
   const { theme, toggleTheme } = useTheme()
   const queryClient = useQueryClient()
   const todayDate = dayjs().format('YYYY-MM-DD')
+  const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD')
+  const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD')
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [isReportsOpen, setReportsOpen] = useState(false)
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
@@ -40,8 +42,8 @@ export const DashboardPage = () => {
   const [todayExpense, setTodayExpense] = useState(0)
   const [todayBalance, setTodayBalance] = useState(0)
   const [allFilters, setAllFilters] = useState<AllTransactionsFilters>({
-    startDate: todayDate,
-    endDate: todayDate,
+    startDate: startOfMonth,
+    endDate: endOfMonth,
     typeFilter: 'all',
     categoryFilter: 'all',
     sortField: 'date',
@@ -182,8 +184,8 @@ export const DashboardPage = () => {
         onLogout={handleLogout}
         userName={displayName}
       />
-      <main className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10 px-6 pb-16 pt-8">
-        <div className="flex flex-wrap items-center justify-center gap-4">
+      <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-24 pt-6 sm:gap-10 sm:px-6 sm:pb-16 sm:pt-8">
+        <div className="flex items-center justify-center">
           <TabNavigation
             tabs={[
               { id: 'today' as const, label: "Today's Activity" },
@@ -204,6 +206,7 @@ export const DashboardPage = () => {
               balance={todayBalance}
               onDeleteTransaction={handleDeleteTransaction}
               isDeleting={deleteTransactionMutation.isPending}
+              currency={user?.currency?.code}
             />
           ) : (
             <AllTransactionsPage
@@ -213,6 +216,7 @@ export const DashboardPage = () => {
               onFiltersChange={setAllFilters}
               onDeleteTransaction={handleDeleteTransaction}
               isDeleting={deleteTransactionMutation.isPending}
+              currency={user?.currency?.code}
             />
           )}
         </Widget>

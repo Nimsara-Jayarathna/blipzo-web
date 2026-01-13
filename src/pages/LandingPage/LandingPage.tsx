@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { login, register } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
@@ -15,9 +15,15 @@ import { HeroSection } from './components/HeroSection'
 
 export const LandingPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { setAuth, isAuthenticated } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const [mode, setMode] = useState<AuthMode | null>(null)
+
+  // Clean initialization of token
+  const [resetToken, setResetToken] = useState('')
+
   const [formState, setFormState] = useState({ firstName: '', lastName: '', email: '', password: '' })
 
   const loginMutation = useMutation({
@@ -29,6 +35,7 @@ export const LandingPage = () => {
     onError: () => toast.error('Invalid credentials'),
   })
 
+  // Basic register mutation (legacy, but keeping generic structure for now)
   const registerMutation = useMutation({
     mutationFn: register,
     onSuccess: data => {
@@ -44,6 +51,23 @@ export const LandingPage = () => {
     }
   }, [isAuthenticated, navigate])
 
+  // Route-based mode handling
+  useEffect(() => {
+    if (location.pathname === '/reset-password') {
+      const token = searchParams.get('token')
+      if (token) {
+        setResetToken(token)
+        setMode('reset-password')
+      } else {
+        toast.error('Invalid reset link')
+        navigate('/')
+      }
+    } else if (location.pathname === '/forgot-password') {
+      // Optional: if user navigates manually to /forgot-password
+      setMode('forgot-password')
+    }
+  }, [location.pathname, searchParams, navigate])
+
   const transitionToMode = (nextMode: AuthMode) => {
     setMode(nextMode)
     loginMutation.reset()
@@ -56,7 +80,8 @@ export const LandingPage = () => {
 
     if (mode === 'login') {
       loginMutation.mutate({ email: formState.email, password: formState.password })
-    } else {
+    } else if (mode === 'register') {
+      // Logic handled inside AuthModal for multi-step now, but keeping safe fallback
       registerMutation.mutate({
         email: formState.email,
         password: formState.password,
@@ -93,10 +118,15 @@ export const LandingPage = () => {
         onRegister={() => transitionToMode('register')}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-8 pb-32 pt-16">
-        <div className="grid items-center gap-20 lg:grid-cols-[1.1fr_1fr]">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-32 pt-12 sm:px-8 sm:pt-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
           <HeroSection onRegister={() => transitionToMode('register')} />
-          <DashboardPreview />
+          <div className="hidden lg:block relative group">
+            <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-tr from-[#3498db]/20 to-[#2ecc71]/20 opacity-0 blur-2xl transition duration-500 group-hover:opacity-100" />
+            <div className="relative rounded-[2.5rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-4 shadow-2xl backdrop-blur-2xl">
+              <DashboardPreview />
+            </div>
+          </div>
         </div>
 
         <FeaturesSection />
@@ -106,11 +136,12 @@ export const LandingPage = () => {
         open={isModalOpen}
         mode={mode}
         isLoading={isLoading}
-        onClose={() => setMode(null)}
+        onClose={() => { setMode(null); navigate('/') }} // Ensure we clear URL if on reset page
         onSubmit={handleSubmit}
         onModeChange={transitionToMode}
         formState={formState}
         onFieldChange={handleFieldChange}
+        resetToken={resetToken}
       />
       <Footer />
     </main>
