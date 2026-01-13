@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
 import toast from 'react-hot-toast'
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
@@ -20,17 +21,7 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
     const [newEmail, setNewEmail] = useState('')
     const [changeToken, setChangeToken] = useState('')
 
-    // Reset state when opening
-    useEffect(() => {
-        if (open) {
-            setStep('idle')
-            setOtp('')
-            setNewEmail('')
-            setChangeToken('')
-            // Auto-start the process when opened
-            initMutation.mutate()
-        }
-    }, [open])
+
 
     const initMutation = useMutation({
         mutationFn: emailChangeInit,
@@ -62,7 +53,7 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             setStep('verify-new')
             setOtp('')
         },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to request change'),
+        onError: (err: AxiosError<{ message: string }>) => toast.error(err.response?.data?.message || 'Failed to request change'),
     })
 
     const confirmMutation = useMutation({
@@ -74,8 +65,20 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             toast.success(data.message || 'Email updated successfully')
             onClose()
         },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to confirm email'),
+        onError: (err: AxiosError<{ message: string }>) => toast.error(err.response?.data?.message || 'Failed to confirm email'),
     })
+
+    // Reset state when opening
+    useEffect(() => {
+        if (open) {
+            setStep('idle')
+            setOtp('')
+            setNewEmail('')
+            setChangeToken('')
+            // Auto-start the process when opened
+            initMutation.mutate()
+        }
+    }, [open, initMutation])
 
     const handleAction = () => {
         if (step === 'idle') {

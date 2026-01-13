@@ -6,6 +6,7 @@ import { SecuritySettingsTab } from './SecuritySettingsTab'
 import { ProfileSettingsTab } from './ProfileSettingsTab'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCoins, faTags, faShieldHalved, faUser } from '@fortawesome/free-solid-svg-icons'
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 
 interface SettingsModalProps {
   open: boolean
@@ -18,7 +19,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
   const [isAddCategoryOpen, setAddCategoryOpen] = useState(false)
 
-  const tabs: { id: SettingsTab; label: string; icon: any }[] = [
+  const tabs: { id: SettingsTab; label: string; icon: IconDefinition }[] = [
     {
       id: 'profile',
       label: 'Profile',
