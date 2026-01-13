@@ -54,7 +54,10 @@ export const register = async (credentials: AuthCredentials) => {
 
 export const passwordForgot = async (email: string) => {
   // Always returns success status for security
-  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/password/forgot`, { email })
+  const { data } = await apiClient.post(`${API_ENDPOINT_PREFIX}/auth/password/forgot`, { 
+    email,
+    platform: 'web',
+  })
   return data
 }
 
