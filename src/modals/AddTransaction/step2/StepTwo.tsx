@@ -46,9 +46,9 @@ export const StepTwo = ({
   const isToday = date === dayjs().format('YYYY-MM-DD')
 
   return (
-    <form className="flex flex-col gap-5" onSubmit={onSubmit}>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-3 text-sm text-[var(--page-fg)] shadow-[0_18px_50px_-40px_rgba(15,23,42,0.35)] backdrop-blur-md">
-        <div className="flex items-center gap-3">
+    <form className="flex flex-col gap-5 sm:gap-6" onSubmit={onSubmit}>
+      <div className="flex flex-col items-stretch gap-3 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-3 text-sm text-[var(--page-fg)] shadow-[0_18px_50px_-40px_rgba(15,23,42,0.35)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between sm:justify-start gap-3">
           <button
             type="button"
             onClick={onBack}
@@ -61,13 +61,13 @@ export const StepTwo = ({
             <span className="text-sm font-semibold text-[var(--page-fg)]">{amount || '0.00'}</span>
           </span>
         </div>
-        <div className="inline-flex rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] shadow-soft backdrop-blur-md">
+        <div className="inline-flex rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] shadow-soft backdrop-blur-md w-full sm:w-auto">
           {(['income', 'expense'] as const).map(option => (
             <button
               key={option}
               type="button"
               onClick={() => onChangeType(option)}
-              className={`px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] transition first:rounded-l-full last:rounded-r-full ${
+              className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] transition first:rounded-l-full last:rounded-r-full ${
                 transactionType === option
                   ? option === 'income'
                     ? 'bg-income text-white'
@@ -121,13 +121,13 @@ export const StepTwo = ({
         />
       </label>
 
-      <button
-        type="submit"
-        className="mt-2 inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2F89C9] disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={isSubmitting || isLoadingCategories || !filteredCategories.length}
-      >
-        {isSubmitting ? <span>Saving...</span> : <span>Add Transaction</span>}
-      </button>
+        <button
+          type="submit"
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-base font-semibold text-white transition hover:bg-[#2F89C9] disabled:cursor-not-allowed disabled:opacity-70 sm:py-2 sm:text-sm"
+          disabled={isSubmitting || isLoadingCategories || !filteredCategories.length}
+        >
+          {isSubmitting ? <span>Saving...</span> : <span>Add Transaction</span>}
+        </button>
     </form>
   )
 }

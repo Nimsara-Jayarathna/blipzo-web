@@ -29,8 +29,13 @@ export const TodayActivitySection = ({
   return (
     <div className="space-y-6">
       <TodaySummaryCards income={income} expense={expense} balance={balance} currency={currency} />
-      <section className="rounded-4xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-6 shadow-card backdrop-blur-xl">
-        <ListHeader title="Today's Activity" />
+      <section className="rounded-[24px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-4 shadow-card backdrop-blur-xl sm:rounded-[34px] sm:p-8">
+        <div className="flex items-center justify-between mb-4">
+          <ListHeader title="Today's Activity" />
+          <div className="sm:hidden">
+            {/* Mobile specific header actions if needed */}
+          </div>
+        </div>
 
         {isLoading ? (
           <LoadingSpinner />

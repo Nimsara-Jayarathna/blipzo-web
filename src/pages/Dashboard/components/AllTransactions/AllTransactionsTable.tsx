@@ -40,7 +40,8 @@ export const AllTransactionsTable = ({
 }: AllTransactionsTableProps) => {
   if (grouped && grouped.length > 0) {
     return (
-      <div className="overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] shadow-soft backdrop-blur-xl">
+    <div className="-mx-4 overflow-x-auto sm:mx-0 sm:overflow-hidden sm:rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] shadow-soft backdrop-blur-xl">
+      <div className="inline-block min-w-full align-middle">
         {grouped.map(group => (
           <div key={group.label} className="border-b border-[var(--border-glass)] last:border-b-0">
             <div className="flex items-center justify-between border-b border-[var(--border-glass)] bg-[var(--surface-glass)] px-5 py-3 backdrop-blur-md">
@@ -54,7 +55,7 @@ export const AllTransactionsTable = ({
                 {group.items.length} items
               </span>
             </div>
-            <table className="w-full table-fixed text-left">
+            <table className="min-w-full table-fixed text-left">
               <colgroup>
                 <col className="w-[140px]" />
                 <col className="w-[240px]" />
@@ -68,22 +69,25 @@ export const AllTransactionsTable = ({
           </div>
         ))}
       </div>
+    </div>
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] shadow-soft backdrop-blur-xl">
-      <table className="w-full table-fixed text-left">
-        <colgroup>
-          <col className="w-[140px]" />
-          <col className="w-[240px]" />
-          <col className="w-[140px]" />
-          <col />
-          <col className="w-[56px]" />
-        </colgroup>
-        <TransactionTableHeader />
-        <tbody>{renderRows(transactions, onDeleteTransaction, isDeleting, currency)}</tbody>
-      </table>
+    <div className="-mx-4 overflow-x-auto sm:mx-0 sm:overflow-hidden sm:rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] shadow-soft backdrop-blur-xl">
+      <div className="inline-block min-w-full align-middle">
+        <table className="min-w-full table-fixed text-left">
+          <colgroup>
+            <col className="w-[140px]" />
+            <col className="w-[240px]" />
+            <col className="w-[140px]" />
+            <col />
+            <col className="w-[56px]" />
+          </colgroup>
+          <TransactionTableHeader />
+          <tbody>{renderRows(transactions, onDeleteTransaction, isDeleting, currency)}</tbody>
+        </table>
+      </div>
     </div>
   )
 }

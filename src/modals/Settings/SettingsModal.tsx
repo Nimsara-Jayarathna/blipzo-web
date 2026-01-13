@@ -1,22 +1,29 @@
 import { useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { SettingsCategoriesTab } from './SettingsCategoriesTab'
+import { CurrencySettingsTab } from './CurrencySettingsTab'
+import { SecuritySettingsTab } from './SecuritySettingsTab'
 import { ProfileSettingsTab } from './ProfileSettingsTab'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCoins, faTags } from '@fortawesome/free-solid-svg-icons'
+import { faCoins, faTags, faShieldHalved, faUser } from '@fortawesome/free-solid-svg-icons'
 
 interface SettingsModalProps {
   open: boolean
   onClose: () => void
 }
 
-type SettingsTab = 'categories' | 'currency'
+type SettingsTab = 'profile' | 'categories' | 'currency' | 'security'
 
 export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('categories')
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
   const [isAddCategoryOpen, setAddCategoryOpen] = useState(false)
 
   const tabs: { id: SettingsTab; label: string; icon: any }[] = [
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: faUser,
+    },
     {
       id: 'categories',
       label: 'Categories',
@@ -26,6 +33,11 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       id: 'currency',
       label: 'Currency',
       icon: faCoins,
+    },
+    {
+      id: 'security',
+      label: 'Security',
+      icon: faShieldHalved,
     },
   ]
 
@@ -54,14 +66,18 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
         </nav>
 
         <div className="flex h-[520px] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
-          {activeTab === 'categories' ? (
+          {activeTab === 'profile' ? (
+            <ProfileSettingsTab />
+          ) : activeTab === 'categories' ? (
             <SettingsCategoriesTab
               isAddCategoryOpen={isAddCategoryOpen}
               onAddCategoryClose={() => setAddCategoryOpen(false)}
               onAddCategoryOpen={() => setAddCategoryOpen(true)}
             />
           ) : activeTab === 'currency' ? (
-            <ProfileSettingsTab />
+            <CurrencySettingsTab />
+          ) : activeTab === 'security' ? (
+            <SecuritySettingsTab />
           ) : null}
         </div>
       </div>

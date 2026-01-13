@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient, API_ENDPOINT_PREFIX } from './client'
 import type { Category } from '../types'
 
 type CategoryApiShape = Category & {
@@ -36,7 +36,7 @@ const extractCategoriesPayload = (data: CategoriesResponse): CategoriesPayload =
 }
 
 export const getCategories = async () => {
-  const { data } = await apiClient.get<CategoriesResponse>('/api/v1.1/categories/active')
+  const { data } = await apiClient.get<CategoriesResponse>(`${API_ENDPOINT_PREFIX}/categories/active`)
   const payload = extractCategoriesPayload(data)
   return {
     categories: payload.categories.map(normalizeCategory),
@@ -45,7 +45,7 @@ export const getCategories = async () => {
 }
 
 export const getAllCategories = async (type?: 'income' | 'expense') => {
-  const { data } = await apiClient.get<CategoriesResponse>('/api/v1.1/categories/all', {
+  const { data } = await apiClient.get<CategoriesResponse>(`${API_ENDPOINT_PREFIX}/categories/all`, {
     params: type ? { type } : {},
   })
   return extractCategoriesPayload(data).categories.map(normalizeCategory)
@@ -53,7 +53,7 @@ export const getAllCategories = async (type?: 'income' | 'expense') => {
 
 export const createCategory = async (payload: Pick<Category, 'name' | 'type'>) => {
   const { data } = await apiClient.post<CategoryApiShape | { category: CategoryApiShape }>(
-    '/api/v1.1/categories',
+    `${API_ENDPOINT_PREFIX}/categories`,
     payload,
   )
 
@@ -69,12 +69,12 @@ export const createCategory = async (payload: Pick<Category, 'name' | 'type'>) =
 }
 
 export const deleteCategory = async (categoryId: string) => {
-  await apiClient.delete(`/api/v1.1/categories/${categoryId}`)
+  await apiClient.delete(`${API_ENDPOINT_PREFIX}/categories/${categoryId}`)
 }
 
 export const setDefaultCategory = async (categoryId: string) => {
   const { data } = await apiClient.patch<CategoryApiShape | { category: CategoryApiShape }>(
-    `/api/v1.1/categories/${categoryId}`,
+    `${API_ENDPOINT_PREFIX}/categories/${categoryId}`,
     { isDefault: true },
   )
 

@@ -10,7 +10,7 @@ export const TransactionTableHeader = () => (
       <th className={headerCellClasses}>Date</th>
       <th className={headerCellClasses}>Category</th>
       <th className={headerCellRightAlignedClasses}>Amount</th>
-      <th className={headerCellClasses}>Note</th>
+      <th className={`${headerCellClasses} hidden md:table-cell`}>Note</th>
       <th className={headerCellRightAlignedClasses} aria-label="Delete" />
     </tr>
   </thead>

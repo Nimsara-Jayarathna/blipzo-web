@@ -1,4 +1,4 @@
-export type AuthMode = 'login' | 'register'
+export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password'
 
 export interface AuthCredentials {
   email: string
@@ -20,6 +20,8 @@ export interface UserProfile {
   id: string
   name: string
   email: string
+  fname?: string
+  lname?: string
   currency?: Currency
 }
 

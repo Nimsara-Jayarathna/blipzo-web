@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient, API_ENDPOINT_PREFIX } from './client'
 import type { SummaryResponse, Transaction, TransactionInput } from '../types'
 
 type TransactionApiShape = Transaction & {
@@ -43,7 +43,7 @@ const extractTransactions = (data: TransactionsResponse): TransactionApiShape[] 
 }
 
 export const getTransactions = async () => {
-  const { data } = await apiClient.get<TransactionsResponse>('/api/v1.1/transactions')
+  const { data } = await apiClient.get<TransactionsResponse>(`${API_ENDPOINT_PREFIX}/transactions`)
   return extractTransactions(data).map(normalizeTransaction)
 }
 
@@ -59,7 +59,7 @@ export interface TransactionFilters {
 }
 
 export const getTransactionsFiltered = async (filters: TransactionFilters = {}) => {
-  const { data } = await apiClient.get<TransactionsResponse | PaginatedTransactionsResponse>('/api/v1.1/transactions', {
+  const { data } = await apiClient.get<TransactionsResponse | PaginatedTransactionsResponse>(`${API_ENDPOINT_PREFIX}/transactions`, {
     params: {
       ...filters,
     },
@@ -74,7 +74,7 @@ export const getTransactionsFiltered = async (filters: TransactionFilters = {}) 
 
 export const createTransaction = async (payload: TransactionInput) => {
   const { data } = await apiClient.post<TransactionApiShape | { transaction: TransactionApiShape }>(
-    '/api/v1.1/transactions',
+    `${API_ENDPOINT_PREFIX}/transactions`,
     payload,
   )
 
@@ -90,7 +90,7 @@ export const createTransaction = async (payload: TransactionInput) => {
 }
 
 export const getTransactionSummary = async () => {
-  const { data } = await apiClient.get<SummaryResponse>('/api/v1.1/transactions/summary')
+  const { data } = await apiClient.get<SummaryResponse>(`${API_ENDPOINT_PREFIX}/transactions/summary`)
   return data
 }
 
@@ -101,7 +101,7 @@ export const deleteTransaction = async (transactionId: string) => {
     throw new Error('Unable to detect timezone')
   }
 
-  await apiClient.delete(`/api/v1.1/transactions/${transactionId}`, {
+  await apiClient.delete(`${API_ENDPOINT_PREFIX}/transactions/${transactionId}`, {
     headers: {
       'X-User-Timezone': timeZone,
     },
