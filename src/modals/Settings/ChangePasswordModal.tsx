@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
 import toast from 'react-hot-toast'
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
@@ -25,7 +26,7 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
             setNewPassword('')
             setConfirmPassword('')
         },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to change password'),
+        onError: (err: AxiosError<{ message: string }>) => toast.error(err.response?.data?.message || 'Failed to change password'),
     })
 
     const handleSubmit = () => {

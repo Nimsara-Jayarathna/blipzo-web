@@ -36,7 +36,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
         retry: 1,
     })
 
-    const categories = data?.categories ?? []
+    const categories = useMemo(() => data?.categories ?? [], [data?.categories])
     const categoriesLimit = data?.limit
 
     const resolveCategoryId = (category: Category) => category._id ?? category.id ?? ''

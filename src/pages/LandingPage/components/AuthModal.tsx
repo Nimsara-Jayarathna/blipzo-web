@@ -8,6 +8,7 @@ import type { AuthMode } from '../../../types'
 import { registerInit, registerVerify, registerComplete, passwordForgot, passwordReset } from '../../../api/auth'
 import { useAuth } from '../../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import type { AxiosError } from 'axios'
 
 interface AuthModalProps {
   open: boolean
@@ -56,12 +57,12 @@ export const AuthModal = ({
   // Mutations
   const initMutation = useMutation({
     mutationFn: registerInit,
-    onSuccess: (data: any) => {
+    onSuccess: (data: { message?: string }) => {
       // Assuming success means we can move to OTP
       toast.success(data.message || 'OTP sent to your email')
       setStep('otp')
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to send OTP'),
+    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Failed to send OTP'),
   })
 
   const verifyMutation = useMutation({
@@ -70,30 +71,30 @@ export const AuthModal = ({
       setRegistrationToken(data.registrationToken)
       setStep('details')
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Invalid OTP'),
+    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Invalid OTP'),
   })
 
   const completeMutation = useMutation({
-    mutationFn: (details: any) => registerComplete(registrationToken, details),
+    mutationFn: (details: { fname: string; lname: string; password: string }) => registerComplete(registrationToken, details),
     onSuccess: (data) => {
       setAuth(data)
       navigate('/dashboard')
       onClose()
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Registration failed'),
+    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Registration failed'),
   })
 
   // --- Forgot Password Mutation ---
   const forgotPasswordMutation = useMutation({
     mutationFn: passwordForgot,
-    onSuccess: (data: any) => {
+    onSuccess: (data: { message?: string }) => {
       if (data?.message === 'User not found') {
         toast.error('This email is not registered with us.')
       } else {
         toast.success('Check your inbox for the reset link.')
       }
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       if (err.response?.data?.message === 'User not found') {
         toast.error('This email is not registered with us.')
       } else {
@@ -110,7 +111,7 @@ export const AuthModal = ({
       onModeChange('login')
       navigate('/')
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to reset password'),
+    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Failed to reset password'),
   })
 
 

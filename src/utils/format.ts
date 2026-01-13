@@ -11,7 +11,7 @@ export const formatCurrency = (value: number, currency = 'USD') => {
       currency: currency,
       maximumFractionDigits: 2,
     }).format(value)
-  } catch (e) {
+  } catch {
     // Fallback if currency code is invalid
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
