@@ -5,7 +5,7 @@ import { useAuth } from '../../../../hooks/useAuth'
 import { Spinner } from '../../../../components/Spinner'
 import toast from 'react-hot-toast'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { Currency } from '../../../../types'
 
 export const CurrencySelector = () => {
@@ -90,7 +90,7 @@ export const CurrencySelector = () => {
                     }`}
                 >
                   {isPending ? (
-                    <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                    <Spinner size="sm" />
                   ) : (
                     currency.symbol
                   )}
