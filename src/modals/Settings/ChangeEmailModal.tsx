@@ -78,7 +78,8 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             // Auto-start the process when opened
             initMutation.mutate()
         }
-    }, [open, initMutation])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open])
 
     const handleAction = () => {
         if (step === 'idle') {
