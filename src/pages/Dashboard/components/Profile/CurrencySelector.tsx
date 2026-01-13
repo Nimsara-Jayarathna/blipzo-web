@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupportedCurrencies, updateUserCurrency } from '../../../../api/currencies'
 import { useAuth } from '../../../../hooks/useAuth'
-import { LoadingSpinner } from '../../../../components/LoadingSpinner'
+import { Spinner } from '../../../../components/Spinner'
 import toast from 'react-hot-toast'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
@@ -51,7 +51,7 @@ export const CurrencySelector = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center p-8">
-        <LoadingSpinner />
+        <Spinner size="lg" className="border-t-accent" />
       </div>
     )
   }

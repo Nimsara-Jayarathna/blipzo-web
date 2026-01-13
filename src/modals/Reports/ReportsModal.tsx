@@ -12,7 +12,7 @@ import {
 } from 'chart.js'
 import { Modal } from '../../components/Modal'
 import { getTransactionSummary } from '../../api/transactions'
-import { LoadingSpinner } from '../../components/LoadingSpinner'
+import { Spinner } from '../../components/Spinner'
 import { ReportsHeader } from './ReportsHeader'
 import { ReportsChart } from './ReportsChart'
 
@@ -72,7 +72,7 @@ export const ReportsModal = ({ open, onClose }: ReportsModalProps) => {
         <ReportsHeader view={view} onChangeView={setView} totals={data?.totals} />
 
         {isLoading ? (
-          <LoadingSpinner />
+          <Spinner size="lg" centered />
         ) : data ? (
           <ReportsChart chartData={chartData} />
         ) : (

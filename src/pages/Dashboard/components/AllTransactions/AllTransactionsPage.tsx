@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { AllTransactionsPageProps, Grouping, SortDirection, SortField } from './types'
-import { LoadingSpinner } from '../../../../components/LoadingSpinner'
+import { Spinner } from '../../../../components/Spinner'
 import { EmptyState } from '../ui/EmptyState'
 import { FiltersBar } from './FiltersBar'
 import { SortControls } from './controls/SortControls'
@@ -26,10 +26,10 @@ export const AllTransactionsPage = ({
     filters.categoryFilter === 'all'
       ? transactions
       : transactions.filter(transaction => {
-          const transactionCategoryId =
-            transaction.categoryId ?? (typeof transaction.category === 'string' ? transaction.category : undefined)
-          return transactionCategoryId === filters.categoryFilter
-        })
+        const transactionCategoryId =
+          transaction.categoryId ?? (typeof transaction.category === 'string' ? transaction.category : undefined)
+        return transactionCategoryId === filters.categoryFilter
+      })
 
   const grouped = useGroupedTransactions(filteredTransactions, grouping)
 
@@ -69,7 +69,7 @@ export const AllTransactionsPage = ({
       </div>
 
       {isLoading ? (
-        <LoadingSpinner />
+        <Spinner size="lg" centered />
       ) : transactions.length === 0 ? (
         <EmptyState title="No transactions found" description="Adjust filters or add a transaction to see it here." />
       ) : (

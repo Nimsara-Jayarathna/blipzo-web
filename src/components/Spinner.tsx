@@ -1,5 +1,7 @@
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg'
+  centered?: boolean
+  className?: string
 }
 
 const sizeStyles: Record<Required<SpinnerProps>['size'], string> = {
@@ -8,9 +10,21 @@ const sizeStyles: Record<Required<SpinnerProps>['size'], string> = {
   lg: 'h-12 w-12 border-4',
 }
 
-export const Spinner = ({ size = 'sm' }: SpinnerProps) => (
-  <span
-    className={`${sizeStyles[size]} inline-flex animate-spin rounded-full border-[var(--border-glass)] border-t-accent`}
-    aria-hidden="true"
-  />
-)
+export const Spinner = ({ size = 'sm', centered = false, className = '' }: SpinnerProps) => {
+  const spinner = (
+    <span
+      className={`${sizeStyles[size]} inline-flex animate-spin rounded-full border-[var(--border-glass)] border-t-accent ${className}`}
+      aria-hidden="true"
+    />
+  )
+
+  if (centered) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        {spinner}
+      </div>
+    )
+  }
+
+  return spinner
+}

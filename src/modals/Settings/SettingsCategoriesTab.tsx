@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { IconSpinner } from '../../components/IconSpinner'
+import { Spinner } from '../../components/Spinner'
 import { getCategories, deleteCategory, setDefaultCategory } from '../../api/categories'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import { mapApiError } from '../../utils/errors'
@@ -163,7 +163,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
             {(isLoading || isFetching || deleteMutation.isPending || setDefaultMutation.isPending) && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--surface-glass)] backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-3">
-                        <IconSpinner className="text-4xl text-accent" />
+                        <Spinner size="lg" className="text-accent" />
                         <p className="text-xs font-medium text-[var(--text-muted)]">Updating categories...</p>
                     </div>
                 </div>
