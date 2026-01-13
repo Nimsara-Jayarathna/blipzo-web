@@ -184,8 +184,8 @@ export const DashboardPage = () => {
         onLogout={handleLogout}
         userName={displayName}
       />
-      <main className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10 px-6 pb-16 pt-8">
-        <div className="flex flex-wrap items-center justify-center gap-4">
+      <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-24 pt-6 sm:gap-10 sm:px-6 sm:pb-16 sm:pt-8">
+        <div className="flex items-center justify-center">
           <TabNavigation
             tabs={[
               { id: 'today' as const, label: "Today's Activity" },

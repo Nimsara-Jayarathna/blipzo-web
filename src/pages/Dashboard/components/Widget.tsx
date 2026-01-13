@@ -5,6 +5,10 @@ interface WidgetProps {
 }
 
 export const Widget = ({ children }: WidgetProps) => {
-  return <div className="w-full">{children}</div>
+  return (
+    <div className="w-full">
+      {children}
+    </div>
+  )
 }
 

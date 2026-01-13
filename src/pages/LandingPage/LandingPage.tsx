@@ -118,10 +118,15 @@ export const LandingPage = () => {
         onRegister={() => transitionToMode('register')}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-8 pb-32 pt-16">
-        <div className="grid items-center gap-20 lg:grid-cols-[1.1fr_1fr]">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-32 pt-12 sm:px-8 sm:pt-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
           <HeroSection onRegister={() => transitionToMode('register')} />
-          <DashboardPreview />
+          <div className="hidden lg:block relative group">
+            <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-tr from-[#3498db]/20 to-[#2ecc71]/20 opacity-0 blur-2xl transition duration-500 group-hover:opacity-100" />
+            <div className="relative rounded-[2.5rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-4 shadow-2xl backdrop-blur-2xl">
+              <DashboardPreview />
+            </div>
+          </div>
         </div>
 
         <FeaturesSection />

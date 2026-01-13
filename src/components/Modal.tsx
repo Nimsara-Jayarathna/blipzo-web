@@ -55,7 +55,7 @@ export const Modal = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={`relative w-full overflow-hidden rounded-[34px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-8 pb-8 pt-10 text-[var(--page-fg)] shadow-[0_45px_120px_-50px_rgba(15,35,55,0.6)] backdrop-blur-2xl sm:px-10 ${widthClassName}`}
+            className={`relative w-full overflow-hidden rounded-[24px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-6 pb-6 pt-8 text-[var(--page-fg)] shadow-[0_45px_120px_-50px_rgba(15,35,55,0.6)] backdrop-blur-2xl sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10 ${widthClassName}`}
             initial={{ y: 36, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 24, opacity: 0, scale: 0.97 }}

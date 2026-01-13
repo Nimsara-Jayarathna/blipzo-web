@@ -81,7 +81,7 @@ export const TransactionRow = ({
         {formatCurrency(Math.abs(transaction.amount), currency)}
       </td>
       <td
-        className="max-w-[360px] truncate px-4 py-3 text-sm text-[var(--text-muted)]"
+        className="max-w-[360px] truncate hidden md:table-cell px-4 py-3 text-sm text-[var(--text-muted)]"
         title={transaction.note ?? 'No note'}
       >
         {transaction.note ?? 'No note'}
