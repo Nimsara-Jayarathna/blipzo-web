@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import type { AxiosError } from 'axios'
-import toast from 'react-hot-toast'
+
+
 import { useAuth } from '../../hooks/useAuth'
 import { updateProfile } from '../../api/user'
 import { Spinner } from '../../components/Spinner'
@@ -26,16 +26,14 @@ export const ProfileSettingsTab = () => {
                 // Update local auth state with new user data
                 setAuth({ user: { ...user, ...data.user } })
             }
-            toast.success('Profile updated successfully')
+
         },
-        onError: (err: AxiosError<{ message: string }>) => {
-            toast.error(err.response?.data?.message || 'Failed to update profile')
-        },
+
     })
 
     const handleSave = () => {
         if (!fname.trim() && !lname.trim()) {
-            return toast.error('Please enter a valid name')
+            return
         }
         updateMutation.mutate({ fname, lname })
     }

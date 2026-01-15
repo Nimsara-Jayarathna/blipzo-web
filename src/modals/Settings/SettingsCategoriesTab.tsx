@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+
 import { Spinner } from '../../components/Spinner'
 import { getCategories, deleteCategory, setDefaultCategory } from '../../api/categories'
 import { ErrorBanner } from '../../components/ErrorBanner'
@@ -54,7 +54,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     const deleteMutation = useMutation({
         mutationFn: (id: string) => deleteCategory(id),
         onSuccess: () => {
-            toast.success('Category removed')
+
             queryClient.invalidateQueries({ queryKey: categoryKey })
             setUiError(null)
         },
@@ -64,7 +64,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     const setDefaultMutation = useMutation({
         mutationFn: (categoryId: string) => setDefaultCategory(categoryId),
         onSuccess: () => {
-            toast.success('Default category updated')
+
             queryClient.invalidateQueries({ queryKey: categoryKey })
             queryClient.invalidateQueries({ queryKey: ['transactions'] })
             setUiError(null)
@@ -102,7 +102,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     const handleDelete = (category: Category) => {
         const identifier = resolveCategoryId(category)
         if (!identifier) {
-            toast.error('Unable to delete category: missing identifier')
+
             return
         }
         deleteMutation.mutate(identifier)
@@ -111,7 +111,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     const handleSetDefault = (category: Category) => {
         const identifier = resolveCategoryId(category)
         if (!identifier) {
-            toast.error('Unable to set default: missing identifier')
+
             return
         }
         handleDefaultSelect(identifier, category.type)

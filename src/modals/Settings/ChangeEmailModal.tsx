@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import type { AxiosError } from 'axios'
-import toast from 'react-hot-toast'
+
+
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
 import { useAuth } from '../../hooks/useAuth'
@@ -26,12 +26,12 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
     const initMutation = useMutation({
         mutationFn: emailChangeInit,
         onSuccess: () => {
-            // toast.success('OTP sent to current email') // Optional: might be too noisy if auto-started
+
             setStep('verify-current')
             setOtp('')
         },
         onError: () => {
-            toast.error('Failed to initiate email change')
+
             onClose()
         },
     })
@@ -43,17 +43,17 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             setStep('enter-new')
             setOtp('')
         },
-        onError: () => toast.error('Invalid OTP'),
+
     })
 
     const requestNewMutation = useMutation({
         mutationFn: () => emailChangeRequestNew(changeToken, newEmail),
         onSuccess: () => {
-            toast.success('OTP sent to new email')
+
             setStep('verify-new')
             setOtp('')
         },
-        onError: (err: AxiosError<{ message: string }>) => toast.error(err.response?.data?.message || 'Failed to request change'),
+
     })
 
     const confirmMutation = useMutation({
@@ -62,10 +62,10 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             if (user) {
                 setAuth({ user: { ...user, email: data.email } })
             }
-            toast.success(data.message || 'Email updated successfully')
+
             onClose()
         },
-        onError: (err: AxiosError<{ message: string }>) => toast.error(err.response?.data?.message || 'Failed to confirm email'),
+
     })
 
     // Reset state when opening
@@ -87,7 +87,7 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
         } else if (step === 'verify-current') {
             verifyCurrentMutation.mutate(otp)
         } else if (step === 'enter-new') {
-            if (!newEmail) return toast.error('Enter a valid email')
+            if (!newEmail) return
             requestNewMutation.mutate()
         } else if (step === 'verify-new') {
             confirmMutation.mutate(otp)

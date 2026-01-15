@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+
 import dayjs from 'dayjs'
 import { Modal } from '../../components/Modal'
 import { createTransaction } from '../../api/transactions'
@@ -65,7 +65,7 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
         }))
         setCategories(mapped)
       } catch {
-        toast.error('Unable to load categories')
+        // ignore error
       } finally {
         setIsLoadingCategories(false)
       }
@@ -96,7 +96,7 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
   const mutation = useMutation({
     mutationFn: createTransaction,
     onSuccess: transaction => {
-      toast.success('Transaction added')
+
       queryClient.invalidateQueries({ queryKey: transactionKey })
       queryClient.invalidateQueries({ queryKey: summaryKey })
       onTransactionCreated?.(transaction)
@@ -104,18 +104,18 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
       setNote('')
       onClose()
     },
-    onError: () => toast.error('Unable to add transaction'),
+
   })
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const numericAmount = Number(amount)
     if (!numericAmount || Number.isNaN(numericAmount)) {
-      toast.error('Please enter a valid amount')
+
       return
     }
     if (!selectedCategory) {
-      toast.error('Select a category')
+
       return
     }
 
@@ -131,7 +131,7 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
   const handleSelectTypeAndContinue = (selectedType: 'income' | 'expense') => {
     const numericAmount = Number(amount)
     if (!numericAmount || Number.isNaN(numericAmount) || numericAmount <= 0) {
-      toast.error('Enter a valid amount first')
+
       return
     }
     setTransactionType(selectedType)

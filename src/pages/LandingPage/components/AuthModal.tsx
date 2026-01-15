@@ -1,14 +1,14 @@
 import { type FormEvent, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+
 import { Modal } from '../../../components/Modal'
 import { Spinner } from '../../../components/Spinner'
 import type { AuthMode } from '../../../types'
 import { registerInit, registerVerify, registerComplete, passwordForgot, passwordReset } from '../../../api/auth'
 import { useAuth } from '../../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
-import type { AxiosError } from 'axios'
+
 
 interface AuthModalProps {
   open: boolean
@@ -57,12 +57,12 @@ export const AuthModal = ({
   // Mutations
   const initMutation = useMutation({
     mutationFn: registerInit,
-    onSuccess: (data: { message?: string }) => {
+    onSuccess: () => {
       // Assuming success means we can move to OTP
-      toast.success(data.message || 'OTP sent to your email')
+
       setStep('otp')
     },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Failed to send OTP'),
+
   })
 
   const verifyMutation = useMutation({
@@ -71,7 +71,7 @@ export const AuthModal = ({
       setRegistrationToken(data.registrationToken)
       setStep('details')
     },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Invalid OTP'),
+
   })
 
   const completeMutation = useMutation({
@@ -81,25 +81,17 @@ export const AuthModal = ({
       navigate('/dashboard')
       onClose()
     },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Registration failed'),
+
   })
 
   // --- Forgot Password Mutation ---
   const forgotPasswordMutation = useMutation({
     mutationFn: passwordForgot,
-    onSuccess: (data: { message?: string }) => {
-      if (data?.message === 'User not found') {
-        toast.error('This email is not registered with us.')
-      } else {
-        toast.success('Check your inbox for the reset link.')
-      }
+    onSuccess: () => {
+
     },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      if (err.response?.data?.message === 'User not found') {
-        toast.error('This email is not registered with us.')
-      } else {
-        toast.error('Failed to process request')
-      }
+    onError: () => {
+
     },
   })
 
@@ -107,11 +99,11 @@ export const AuthModal = ({
   const resetPasswordMutation = useMutation({
     mutationFn: ({ token, password }: { token: string; password: string }) => passwordReset(token, password),
     onSuccess: () => {
-      toast.success('Password reset successfully. Please log in.')
+
       onModeChange('login')
       navigate('/')
     },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Failed to reset password'),
+
   })
 
 
@@ -133,7 +125,7 @@ export const AuthModal = ({
       verifyMutation.mutate({ email: formState.email, otp })
     } else if (step === 'details') {
       if (formState.password !== confirmPassword) {
-        toast.error('Passwords do not match')
+
         return
       }
       completeMutation.mutate({
@@ -152,7 +144,7 @@ export const AuthModal = ({
   const handleResetSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (formState.password !== resetConfirmPassword) {
-      toast.error('Passwords do not match')
+
       return
     }
     if (resetToken) {

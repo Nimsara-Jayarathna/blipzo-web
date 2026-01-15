@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
+
 import dayjs from 'dayjs'
 import { AppNavbar } from '../../layouts/AppNavbar'
 import { Footer } from '../../components/Footer'
@@ -20,7 +20,7 @@ import type { Transaction } from '../../types'
 import type { TransactionFilters } from '../../api/transactions'
 import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
-import { mapApiError } from '../../utils/errors'
+
 
 const transactionKey = ['transactions']
 
@@ -53,7 +53,7 @@ export const DashboardPage = () => {
   const {
     data: todayData,
     isLoading: isTodayLoading,
-    isError: isTodayError,
+
   } = useQuery({
     queryKey: [...transactionKey, 'today', todayDate],
     queryFn: () =>
@@ -67,7 +67,7 @@ export const DashboardPage = () => {
   const {
     data: allData,
     isLoading: isAllLoading,
-    isError: isAllError,
+
   } = useQuery({
     queryKey: [...transactionKey, 'all', { ...allFilters, categoryFilter: undefined }],
     queryFn: () =>
@@ -130,12 +130,9 @@ export const DashboardPage = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: transactionKey })
-      toast.success('Transaction deleted')
+
     },
-    onError: error => {
-      const friendly = mapApiError(error)
-      toast.error(friendly.message)
-    },
+
   })
 
   const handleDeleteTransaction = (transaction: Transaction) => {
@@ -156,17 +153,13 @@ export const DashboardPage = () => {
   const handleLogout = () => {
     void logoutSession().catch(() => { })
     logout()
-    toast.success('Logged out')
+
     navigate('/', { replace: true })
   }
 
   const displayName = user?.name?.split(' ')[0] ?? user?.email ?? 'there'
 
-  useEffect(() => {
-    if (isTodayError || isAllError) {
-      toast.error('Unable to load dashboard data')
-    }
-  }, [isAllError, isTodayError])
+
 
   return (
     <div

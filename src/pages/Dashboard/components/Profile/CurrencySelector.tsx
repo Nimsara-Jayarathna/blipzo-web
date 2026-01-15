@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupportedCurrencies, updateUserCurrency } from '../../../../api/currencies'
 import { useAuth } from '../../../../hooks/useAuth'
 import { Spinner } from '../../../../components/Spinner'
-import toast from 'react-hot-toast'
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { Currency } from '../../../../types'
@@ -33,11 +33,11 @@ export const CurrencySelector = () => {
       }
       queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
       queryClient.invalidateQueries({ queryKey: ['transactions'] }) // Invalidate to re-render with new currency if needed
-      toast.success('Currency updated successfully')
+
       setPendingCurrency(null)
     },
     onError: () => {
-      toast.error('Failed to update currency')
+
       setPendingCurrency(null)
     },
   })

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import type { AxiosError } from 'axios'
-import toast from 'react-hot-toast'
+
+
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
 import { changePassword } from '../../api/auth'
@@ -19,19 +19,19 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
     const passwordMutation = useMutation({
         mutationFn: () => changePassword(currentPassword, newPassword),
         onSuccess: () => {
-            toast.success('Password changed successfully')
+
             onClose()
             // Reset state
             setCurrentPassword('')
             setNewPassword('')
             setConfirmPassword('')
         },
-        onError: (err: AxiosError<{ message: string }>) => toast.error(err.response?.data?.message || 'Failed to change password'),
+
     })
 
     const handleSubmit = () => {
-        if (newPassword.length < 6) return toast.error('Password too short')
-        if (newPassword !== confirmPassword) return toast.error('Passwords do not match')
+        if (newPassword.length < 6) return
+        if (newPassword !== confirmPassword) return
         passwordMutation.mutate()
     }
 

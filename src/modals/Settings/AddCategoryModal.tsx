@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
 import { createCategory } from '../../api/categories'
@@ -35,7 +35,7 @@ export const AddCategoryModal = ({ open, onClose, categories, limit }: AddCatego
       setSavingType(payload.type)
     },
     onSuccess: () => {
-      toast.success('Category created')
+
       queryClient.invalidateQueries({ queryKey: categoryKey })
       setUiError(null)
       setName('')
@@ -44,7 +44,7 @@ export const AddCategoryModal = ({ open, onClose, categories, limit }: AddCatego
     onError: error => {
       const mapped = mapApiError(error)
       setUiError(mapped.message)
-      toast.error(mapped.message)
+
     },
     onSettled: () => {
       setSavingType(null)

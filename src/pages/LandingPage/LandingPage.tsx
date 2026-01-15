@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
-import toast from 'react-hot-toast'
+
 import { login, register } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
@@ -32,7 +32,7 @@ export const LandingPage = () => {
       setAuth(data)
       navigate('/dashboard')
     },
-    onError: () => toast.error('Invalid credentials'),
+
   })
 
   // Basic register mutation (legacy, but keeping generic structure for now)
@@ -42,7 +42,7 @@ export const LandingPage = () => {
       setAuth(data)
       navigate('/dashboard')
     },
-    onError: () => toast.error('Unable to create account'),
+
   })
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export const LandingPage = () => {
         setResetToken(token)
         setMode('reset-password')
       } else {
-        toast.error('Invalid reset link')
+
         navigate('/')
       }
     } else if (location.pathname === '/forgot-password') {
