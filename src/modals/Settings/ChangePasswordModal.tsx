@@ -82,12 +82,7 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
                     >
                         {isSubmitting ? <Spinner size="sm" /> : 'Update Password'}
                     </button>
-                    <button
-                        onClick={onClose}
-                        className="rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                    >
-                        Cancel
-                    </button>
+
                 </div>
             </div>
             {blockingModal}

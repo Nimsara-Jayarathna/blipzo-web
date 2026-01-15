@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
 
@@ -8,7 +9,7 @@ import { OtpInput } from '../../components/OtpInput'
 import { useAuth } from '../../hooks/useAuth'
 import { emailChangeInit, emailChangeVerifyCurrent, emailChangeRequestNew, emailChangeConfirm } from '../../api/auth'
 
-type EmailChangeStep = 'idle' | 'verify-current' | 'enter-new' | 'verify-new'
+type EmailChangeStep = 'idle' | 'verify-current' | 'enter-new' | 'sending-new' | 'verify-new'
 
 interface ChangeEmailModalProps {
     open: boolean
@@ -24,12 +25,8 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
 
 
 
-    const {
-        execute: initEmailChange,
-        isLoading: isInitializing,
-        modal: initModal,
-    } = useBlockingAsync(emailChangeInit, {
-        successMessage: 'Verification code sent!',
+    const initMutation = useMutation({
+        mutationFn: emailChangeInit,
         onSuccess: () => {
             setStep('verify-current')
             setOtp('')
@@ -42,6 +39,7 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
         isLoading: isVerifyingCurrent,
         modal: verifyCurrentModal,
     } = useBlockingAsync(emailChangeVerifyCurrent, {
+        successMessage: 'Current email verified!',
         onSuccess: (data) => {
             setChangeToken(data.changeToken)
             setStep('enter-new')
@@ -49,27 +47,26 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
         },
     })
 
-    const {
-        execute: requestNew,
-        isLoading: isRequestingNew,
-        modal: requestNewModal,
-    } = useBlockingAsync(
-        () => emailChangeRequestNew(changeToken, newEmail),
-        {
-            successMessage: 'Verification code sent!',
-            onSuccess: () => {
-                setStep('verify-new')
-                setOtp('')
-            },
+    const requestNewMutation = useMutation({
+        mutationFn: () => emailChangeRequestNew(changeToken, newEmail),
+        onMutate: () => {
+            setStep('sending-new')
+        },
+        onSuccess: () => {
+            setStep('verify-new')
+            setOtp('')
+        },
+        onError: () => {
+            setStep('enter-new')
         }
-    )
+    })
 
     const {
         execute: confirmNew,
         isLoading: isConfirming,
         modal: confirmModal,
     } = useBlockingAsync(emailChangeConfirm, {
-        successMessage: 'Email updated successfully!',
+        successMessage: 'New email address updated!',
         onSuccess: (data) => {
             if (user) {
                 setAuth({ user: { ...user, email: data.email } })
@@ -86,28 +83,28 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             setNewEmail('')
             setChangeToken('')
             // Auto-start the process when opened
-            initEmailChange()
+            initMutation.mutate()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
 
     const handleAction = () => {
         if (step === 'idle') {
-            initEmailChange()
+            initMutation.mutate()
         } else if (step === 'verify-current') {
             verifyCurrent(otp)
         } else if (step === 'enter-new') {
             if (!newEmail) return
-            requestNew()
+            requestNewMutation.mutate()
         } else if (step === 'verify-new') {
             confirmNew(otp)
         }
     }
 
     const isLoading =
-        isInitializing ||
+        initMutation.isPending ||
         isVerifyingCurrent ||
-        isRequestingNew ||
+        requestNewMutation.isPending ||
         isConfirming
 
     const getTitle = () => {
@@ -115,6 +112,7 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             case 'idle': return 'Initiating Change...'
             case 'verify-current': return 'Verify Current Email'
             case 'enter-new': return 'New Email Address'
+            case 'sending-new': return 'Sending Verification...'
             case 'verify-new': return 'Verify New Email'
         }
     }
@@ -128,10 +126,12 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             widthClassName="max-w-md"
         >
             <div className="py-2">
-                {step === 'idle' && (
+                {(step === 'idle' || step === 'sending-new') && (
                     <div className="flex flex-col items-center justify-center py-8">
                         <Spinner size="lg" />
-                        <p className="mt-4 text-[var(--text-muted)]">Preparing security verification...</p>
+                        <p className="mt-4 text-[var(--text-muted)]">
+                            {step === 'idle' ? 'Preparing security verification...' : 'Sending verification to new email...'}
+                        </p>
                     </div>
                 )}
 
@@ -175,27 +175,19 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
                     </div>
                 )}
 
-                {step !== 'idle' && (
-                    <div className="flex gap-4 pt-2">
+                {(step !== 'idle' && step !== 'sending-new') && (
+                    <div className="pt-2">
                         <button
                             onClick={handleAction}
                             disabled={isLoading}
-                            className="flex-1 rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+                            className="w-full rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                         >
                             {isLoading ? <Spinner size="sm" /> : 'Continue'}
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                        >
-                            Cancel
                         </button>
                     </div>
                 )}
             </div>
-            {initModal}
             {verifyCurrentModal}
-            {requestNewModal}
             {confirmModal}
         </Modal>
     )
