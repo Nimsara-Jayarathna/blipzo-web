@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
 import dayjs from 'dayjs'
 import { AppNavbar } from '../../layouts/AppNavbar'
@@ -95,8 +96,12 @@ export const DashboardPage = () => {
     setAllTransactions(allData?.transactions ?? [])
   }, [allData])
 
-  const deleteTransactionMutation = useMutation({
-    mutationFn: async (transaction: Transaction) => {
+  const {
+    execute: executeDelete,
+    isLoading: isDeleting,
+    modal: blockingModal,
+  } = useBlockingAsync(
+    async (transaction: Transaction) => {
       const identifier = transaction._id ?? transaction.id
 
       if (!identifier) {
@@ -106,37 +111,38 @@ export const DashboardPage = () => {
       await deleteTransaction(identifier)
       return transaction
     },
-    onSuccess: deleted => {
-      setTodayTransactions(prev =>
-        prev.filter(
-          item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
-        ),
-      )
-      setAllTransactions(prev =>
-        prev.filter(
-          item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
-        ),
-      )
+    {
+      successMessage: 'Transaction deleted successfully!',
+      onSuccess: (deleted) => {
+        setTodayTransactions(prev =>
+          prev.filter(
+            item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
+          ),
+        )
+        setAllTransactions(prev =>
+          prev.filter(
+            item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
+          ),
+        )
 
-      const todayReference = dayjs()
-      if (dayjs(deleted.date).isSame(todayReference, 'day')) {
-        if (deleted.type === 'income') {
-          setTodayIncome(prev => prev - deleted.amount)
-          setTodayBalance(prev => prev - deleted.amount)
-        } else if (deleted.type === 'expense') {
-          setTodayExpense(prev => prev - deleted.amount)
-          setTodayBalance(prev => prev + deleted.amount)
+        const todayReference = dayjs()
+        if (dayjs(deleted.date).isSame(todayReference, 'day')) {
+          if (deleted.type === 'income') {
+            setTodayIncome(prev => prev - deleted.amount)
+            setTodayBalance(prev => prev - deleted.amount)
+          } else if (deleted.type === 'expense') {
+            setTodayExpense(prev => prev - deleted.amount)
+            setTodayBalance(prev => prev + deleted.amount)
+          }
         }
-      }
 
-      queryClient.invalidateQueries({ queryKey: transactionKey })
-
-    },
-
-  })
+        queryClient.invalidateQueries({ queryKey: transactionKey })
+      },
+    }
+  )
 
   const handleDeleteTransaction = (transaction: Transaction) => {
-    deleteTransactionMutation.mutate(transaction)
+    executeDelete(transaction)
   }
 
   const handleTransactionCreated = (transaction: Transaction) => {
@@ -198,7 +204,7 @@ export const DashboardPage = () => {
               expense={todayExpense}
               balance={todayBalance}
               onDeleteTransaction={handleDeleteTransaction}
-              isDeleting={deleteTransactionMutation.isPending}
+              isDeleting={isDeleting}
               currency={user?.currency?.code}
             />
           ) : (
@@ -208,7 +214,7 @@ export const DashboardPage = () => {
               filters={allFilters}
               onFiltersChange={setAllFilters}
               onDeleteTransaction={handleDeleteTransaction}
-              isDeleting={deleteTransactionMutation.isPending}
+              isDeleting={isDeleting}
               currency={user?.currency?.code}
             />
           )}
@@ -225,6 +231,7 @@ export const DashboardPage = () => {
         onTransactionCreated={handleTransactionCreated}
       />
       <Footer />
+      {blockingModal}
     </div>
   )
 }

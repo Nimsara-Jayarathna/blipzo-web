@@ -1,6 +1,8 @@
 import type { Transaction } from '../../../../../types'
 import { formatCurrency, formatDate } from '../../../../../utils/format'
 import { isToday } from '../../../../../utils/date'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 const resolveCategory = (transaction: Transaction) => {
   if (typeof transaction.category === 'string') {
@@ -35,8 +37,8 @@ const DeleteActionCell = ({ canDelete, isDeleting, onClick }: DeleteActionCellPr
         disabled={isDeleting}
         className={`${baseClasses} bg-transparent hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60`}
       >
-        <span className="text-lg leading-none" style={{ color: '#ff0000' }}>
-          ×
+        <span className="text-sm leading-none" style={{ color: '#ff0000' }}>
+          <FontAwesomeIcon icon={faTrash} />
         </span>
       </button>
     )
@@ -44,8 +46,8 @@ const DeleteActionCell = ({ canDelete, isDeleting, onClick }: DeleteActionCellPr
 
   return (
     <div className={`${baseClasses} cursor-default`}>
-      <span className="text-lg leading-none" style={{ color: '#666666' }}>
-        ×
+      <span className="text-sm leading-none" style={{ color: '#666666' }}>
+        <FontAwesomeIcon icon={faTrash} />
       </span>
     </div>
   )
