@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
 import dayjs from 'dayjs'
 import { Modal } from '../../components/Modal'
@@ -93,18 +94,21 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
     setSelectedCategory(defaultForType?.id ?? nextFiltered[0]?.id ?? '')
   }, [categories, transactionType])
 
-  const mutation = useMutation({
-    mutationFn: createTransaction,
-    onSuccess: transaction => {
-
+  const {
+    execute: executeCreate,
+    isLoading: isCreating,
+    modal: blockingModal,
+  } = useBlockingAsync(createTransaction, {
+    successMessage: 'Transaction added successfully!',
+    onSuccess: (transaction) => {
       queryClient.invalidateQueries({ queryKey: transactionKey })
       queryClient.invalidateQueries({ queryKey: summaryKey })
       onTransactionCreated?.(transaction)
       setAmount('')
       setNote('')
+      setStep(1) // Reset to step 1
       onClose()
     },
-
   })
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -119,7 +123,7 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
       return
     }
 
-    mutation.mutate({
+    executeCreate({
       amount: numericAmount,
       type: transactionType,
       category: selectedCategory,
@@ -143,35 +147,38 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Add Transaction"
-      subtitle="Quickly log income or expenses in two simple steps."
-      widthClassName={step === 1 ? 'max-w-md' : 'max-w-xl'}
-    >
-      {step === 1 ? (
-        <StepOne amount={amount} onChangeAmount={setAmount} onSelectType={handleSelectTypeAndContinue} />
-      ) : (
-        <StepTwo
-          amount={amount}
-          transactionType={transactionType}
-          date={date}
-          note={note}
-          categories={categories}
-          filteredCategories={filteredCategories}
-          selectedCategory={selectedCategory}
-          isLoadingCategories={isLoadingCategories}
-          isSubmitting={mutation.isPending}
-          onBack={handleBackToStepOne}
-          onSubmit={handleSubmit}
-          onChangeType={setTransactionType}
-          onChangeDate={setDate}
-          onChangeNote={setNote}
-          onSelectCategory={setSelectedCategory}
-        />
-      )}
-    </Modal>
+    <>
+      {blockingModal}
+      <Modal
+        open={open}
+        onClose={onClose}
+        title="Add Transaction"
+        subtitle="Quickly log income or expenses in two simple steps."
+        widthClassName={step === 1 ? 'max-w-md' : 'max-w-xl'}
+      >
+        {step === 1 ? (
+          <StepOne amount={amount} onChangeAmount={setAmount} onSelectType={handleSelectTypeAndContinue} />
+        ) : (
+          <StepTwo
+            amount={amount}
+            transactionType={transactionType}
+            date={date}
+            note={note}
+            categories={categories}
+            filteredCategories={filteredCategories}
+            selectedCategory={selectedCategory}
+            isLoadingCategories={isLoadingCategories}
+            isSubmitting={isCreating}
+            onBack={handleBackToStepOne}
+            onSubmit={handleSubmit}
+            onChangeType={setTransactionType}
+            onChangeDate={setDate}
+            onChangeNote={setNote}
+            onSelectCategory={setSelectedCategory}
+          />
+        )}
+      </Modal>
+    </>
   )
 }
 
