@@ -1,12 +1,14 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useMutation } from '@tanstack/react-query'
 
 import { Modal } from '../../../components/Modal'
 import { Spinner } from '../../../components/Spinner'
+import { ConfirmationModal } from '../../../components/ConfirmationModal'
 import type { AuthMode } from '../../../types'
 import { registerInit, registerVerify, registerComplete, passwordForgot, passwordReset } from '../../../api/auth'
 import { useAuth } from '../../../hooks/useAuth'
+import { useBlockingAsync } from '../../../hooks/useBlockingAsync'
 import { useNavigate } from 'react-router-dom'
 
 
@@ -50,39 +52,56 @@ export const AuthModal = ({
   const [registrationToken, setRegistrationToken] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+
   // Reset Password State
   const [resetConfirmPassword, setResetConfirmPassword] = useState('')
 
 
   // Mutations
-  const initMutation = useMutation({
-    mutationFn: registerInit,
+  const {
+    execute: executeInit,
+    isLoading: isInitLoading,
+    modal: initModal,
+  } = useBlockingAsync(registerInit, {
+    successMessage: 'Verification code sent!',
     onSuccess: () => {
-      // Assuming success means we can move to OTP
-
       setStep('otp')
     },
-
   })
 
-  const verifyMutation = useMutation({
-    mutationFn: ({ email, otp }: { email: string; otp: string }) => registerVerify(email, otp),
-    onSuccess: (data) => {
-      setRegistrationToken(data.registrationToken)
-      setStep('details')
-    },
+  const {
+    execute: executeVerify,
+    isLoading: isVerifyLoading,
+    modal: verifyModal,
+  } = useBlockingAsync(
+    async ({ email, otp }: { email: string; otp: string }) => registerVerify(email, otp),
+    {
+      successMessage: 'Email verified!',
+      onSuccess: (data) => {
+        setRegistrationToken(data.registrationToken)
+        setStep('details')
+      },
+    }
+  )
 
-  })
-
-  const completeMutation = useMutation({
-    mutationFn: (details: { fname: string; lname: string; password: string }) => registerComplete(registrationToken, details),
-    onSuccess: (data) => {
-      setAuth(data)
-      navigate('/dashboard')
-      onClose()
-    },
-
-  })
+  const {
+    execute: executeComplete,
+    isLoading: isCompleteLoading,
+    modal: completeModal,
+  } = useBlockingAsync(
+    async ({ token, details }: { token: string; details: { fname: string; lname: string; password: string } }) =>
+      registerComplete(token, details),
+    {
+      successMessage: 'Account created successfully!',
+      onSuccess: (data) => {
+        setAuth(data)
+        navigate('/dashboard')
+        resetInternalState() // Ensure clean exit
+        onClose()
+      },
+    }
+  )
 
   // --- Forgot Password Mutation ---
   const forgotPasswordMutation = useMutation({
@@ -108,30 +127,64 @@ export const AuthModal = ({
 
 
   // Reset wizard on close or mode switch
-  const handleModeSwitch = (newMode: AuthMode) => {
+  const resetInternalState = () => {
     setStep('email')
     setOtp('')
     setRegistrationToken('')
     setConfirmPassword('')
     setResetConfirmPassword('')
+    setShowExitConfirm(false)
+  }
+
+  const handleModeSwitch = (newMode: AuthMode) => {
+    resetInternalState()
     onModeChange(newMode)
+  }
+
+  // Reset state when modal closes (with delay for animation)
+  useEffect(() => {
+    if (!open) {
+      const timer = setTimeout(() => {
+        resetInternalState()
+      }, 300) // Match the AnimatePresence duration roughly
+      return () => clearTimeout(timer)
+    }
+  }, [open])
+
+  const handleAttemptClose = () => {
+    // If in registration mode and progress has been made (OTP or Details step)
+    if (activeMode === 'register' && (step === 'otp' || step === 'details')) {
+      setShowExitConfirm(true)
+    } else {
+      onClose()
+    }
+  }
+
+  const handleConfirmExit = () => {
+    setShowExitConfirm(false)
+    onClose() // Actually close
+    // Optional: Reset step effectively happens on next open due to component unmount or we can force it here
   }
 
   const handleRegisterSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (step === 'email') {
-      initMutation.mutate(formState.email)
+      executeInit(formState.email)
     } else if (step === 'otp') {
-      verifyMutation.mutate({ email: formState.email, otp })
+      executeVerify({ email: formState.email, otp })
     } else if (step === 'details') {
       if (formState.password !== confirmPassword) {
-
+        // Simple alert for mismatched passwords (non-blocking)
+        alert("Passwords do not match!")
         return
       }
-      completeMutation.mutate({
-        fname: formState.firstName,
-        lname: formState.lastName,
-        password: formState.password,
+      executeComplete({
+        token: registrationToken,
+        details: {
+          fname: formState.firstName,
+          lname: formState.lastName,
+          password: formState.password,
+        }
       })
     }
   }
@@ -152,16 +205,31 @@ export const AuthModal = ({
     }
   }
 
-  const isLoading = parentLoading || initMutation.isPending || verifyMutation.isPending || completeMutation.isPending
+  const isLoading = parentLoading || isInitLoading || isVerifyLoading || isCompleteLoading
 
   const isLogin = activeMode === 'login'
 
   return (
     <AnimatePresence>
+      {initModal}
+      {verifyModal}
+      {completeModal}
+
+      <ConfirmationModal
+        open={showExitConfirm}
+        title="Exit Registration?"
+        message="Registration is incomplete. Any progress will be lost if you exit now."
+        type="warning"
+        confirmText="Exit & Discard"
+        cancelText="Stay"
+        onConfirm={handleConfirmExit}
+        onCancel={() => setShowExitConfirm(false)}
+      />
+
       {open && (
         <Modal
           open={open}
-          onClose={onClose}
+          onClose={handleAttemptClose}
           title={
             activeMode === 'login'
               ? 'Welcome back'

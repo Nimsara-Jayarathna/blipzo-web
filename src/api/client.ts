@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '../context/auth-store'
+import type { ApiError } from '../types/errors'
 
 const normalizeBaseUrl = (value: string) => value.replace(/\/+$/, '')
 
@@ -57,7 +58,13 @@ apiClient.interceptors.request.use(config => {
 })
 
 apiClient.interceptors.response.use(
-  response => response,
+  response => {
+    // Unwrap standard envelope if present
+    if (response.data && typeof response.data === 'object' && 'success' in response.data && response.data.data !== undefined) {
+      response.data = response.data.data
+    }
+    return response
+  },
   async error => {
     const status = error.response?.status as number | undefined
     const originalRequest = error.config as RetriableRequest | undefined
@@ -74,13 +81,33 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest)
       } catch (refreshError) {
         useAuthStore.getState().logout()
-        return Promise.reject(refreshError)
+        return Promise.reject(normalizeError(refreshError))
       }
     }
 
     if (status === 401 && !originalRequest?.url?.includes('/auth/password/change')) {
       useAuthStore.getState().logout()
     }
-    return Promise.reject(error)
+    return Promise.reject(normalizeError(error))
   },
 )
+
+const normalizeError = (error: any): ApiError => {
+  const responseData = error.response?.data as any
+  const status = error.response?.status
+
+  if (responseData && typeof responseData === 'object' && responseData.success === false && responseData.error) {
+    return {
+      code: responseData.error.code || 'UNKNOWN_ERROR',
+      message: responseData.error.message || 'An error occurred',
+      details: responseData.error.details,
+      status,
+    }
+  }
+
+  return {
+    code: error.code || 'UNKNOWN_ERROR',
+    message: error.message || 'An unknown error occurred',
+    status,
+  }
+}
