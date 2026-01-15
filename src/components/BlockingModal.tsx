@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faTriangleExclamation, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useScrollLock } from '../hooks/useScrollLock'
 
 export type BlockingState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -12,6 +13,7 @@ interface BlockingModalProps {
 
 export const BlockingModal = ({ state, message, onClose }: BlockingModalProps) => {
     const isOpen = state !== 'idle'
+    useScrollLock(isOpen)
 
     return (
         <AnimatePresence>

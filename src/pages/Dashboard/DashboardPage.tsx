@@ -54,7 +54,7 @@ export const DashboardPage = () => {
 
   const {
     data: todayData,
-    isFetching: isTodayFetching,
+    isLoading: isTodayLoading,
   } = useQuery({
     queryKey: [...transactionKey, 'today', todayDate],
     queryFn: () =>
@@ -67,7 +67,7 @@ export const DashboardPage = () => {
 
   const {
     data: allData,
-    isFetching: isAllFetching,
+    isLoading: isAllLoading,
   } = useQuery({
     queryKey: [...transactionKey, 'all', { ...allFilters, categoryFilter: undefined }],
     queryFn: () =>
@@ -232,7 +232,7 @@ export const DashboardPage = () => {
       <Footer />
       {blockingModal}
       <BlockingModal
-        state={isTodayFetching || isAllFetching ? 'loading' : 'idle'}
+        state={isTodayLoading || isAllLoading ? 'loading' : 'idle'}
         message="Updating transactions..."
         onClose={() => { }}
       />

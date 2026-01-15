@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode } from 'react'
+import { useScrollLock } from '../hooks/useScrollLock'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface ModalProps {
@@ -24,16 +25,7 @@ export const Modal = ({
   widthClassName = 'max-w-lg',
   zIndex = 'z-50',
 }: ModalProps) => {
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
+  useScrollLock(open)
 
   return (
     <AnimatePresence>
