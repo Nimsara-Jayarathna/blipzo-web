@@ -25,6 +25,7 @@ interface StepTwoProps {
   onChangeDate: (value: string) => void
   onChangeNote: (value: string) => void
   onSelectCategory: (id: string) => void
+  currencySymbol: string
 }
 
 export const StepTwo = ({
@@ -42,6 +43,7 @@ export const StepTwo = ({
   onChangeDate,
   onChangeNote,
   onSelectCategory,
+  currencySymbol,
 }: StepTwoProps) => {
   const isToday = date === dayjs().format('YYYY-MM-DD')
 
@@ -58,7 +60,7 @@ export const StepTwo = ({
           </button>
           <span className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 backdrop-blur-md">
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">Amount</span>
-            <span className="text-sm font-semibold text-[var(--page-fg)]">{amount || '0.00'}</span>
+            <span className="text-sm font-semibold text-[var(--page-fg)]">{currencySymbol} {amount || '0.00'}</span>
           </span>
         </div>
         <div className="inline-flex rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] shadow-soft backdrop-blur-md w-full sm:w-auto">
@@ -67,13 +69,12 @@ export const StepTwo = ({
               key={option}
               type="button"
               onClick={() => onChangeType(option)}
-              className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] transition first:rounded-l-full last:rounded-r-full ${
-                transactionType === option
-                  ? option === 'income'
-                    ? 'bg-income text-white'
-                    : 'bg-expense text-white'
-                  : 'text-[var(--text-muted)] hover:bg-accent/5'
-              }`}
+              className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] transition first:rounded-l-full last:rounded-r-full ${transactionType === option
+                ? option === 'income'
+                  ? 'bg-income text-white'
+                  : 'bg-expense text-white'
+                : 'text-[var(--text-muted)] hover:bg-accent/5'
+                }`}
             >
               {option}
             </button>
@@ -102,11 +103,10 @@ export const StepTwo = ({
           type="date"
           value={date}
           onChange={event => onChangeDate(event.target.value)}
-          className={`rounded-2xl border px-4 py-3 text-sm text-[var(--page-fg)] focus:outline-none focus:ring-2 ${
-            isToday
-              ? 'border-accent bg-accent/5 focus:border-accent focus:ring-accent/40'
-              : 'border-[var(--border-glass)] bg-[var(--surface-glass)] focus:border-accent focus:ring-accent/30'
-          }`}
+          className={`rounded-2xl border px-4 py-3 text-sm text-[var(--page-fg)] focus:outline-none focus:ring-2 ${isToday
+            ? 'border-accent bg-accent/5 focus:border-accent focus:ring-accent/40'
+            : 'border-[var(--border-glass)] bg-[var(--surface-glass)] focus:border-accent focus:ring-accent/30'
+            }`}
         />
       </label>
 
@@ -121,13 +121,13 @@ export const StepTwo = ({
         />
       </label>
 
-        <button
-          type="submit"
-          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-base font-semibold text-white transition hover:bg-[#2F89C9] disabled:cursor-not-allowed disabled:opacity-70 sm:py-2 sm:text-sm"
-          disabled={isSubmitting || isLoadingCategories || !filteredCategories.length}
-        >
-          {isSubmitting ? <span>Saving...</span> : <span>Add Transaction</span>}
-        </button>
+      <button
+        type="submit"
+        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-base font-semibold text-white transition hover:bg-[#2F89C9] disabled:cursor-not-allowed disabled:opacity-70 sm:py-2 sm:text-sm"
+        disabled={isSubmitting || isLoadingCategories || !filteredCategories.length}
+      >
+        {isSubmitting ? <span>Saving...</span> : <span>Add Transaction</span>}
+      </button>
     </form>
   )
 }

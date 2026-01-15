@@ -9,6 +9,7 @@ import type { Transaction } from '../../types'
 import { getCategories } from '../../api/categories'
 import { StepOne } from './step1/StepOne'
 import { StepTwo } from './step2/StepTwo'
+import { useAuth } from '../../hooks/useAuth'
 
 interface AddTransactionModalProps {
   open: boolean
@@ -29,6 +30,8 @@ type CategoryOption = {
 
 export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: AddTransactionModalProps) => {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const currencySymbol = user?.currency?.symbol || '$'
 
   const [amount, setAmount] = useState('')
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense')
@@ -157,7 +160,12 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
         widthClassName={step === 1 ? 'max-w-md' : 'max-w-xl'}
       >
         {step === 1 ? (
-          <StepOne amount={amount} onChangeAmount={setAmount} onSelectType={handleSelectTypeAndContinue} />
+          <StepOne
+            amount={amount}
+            onChangeAmount={setAmount}
+            onSelectType={handleSelectTypeAndContinue}
+            currencySymbol={currencySymbol}
+          />
         ) : (
           <StepTwo
             amount={amount}
@@ -175,6 +183,7 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
             onChangeDate={setDate}
             onChangeNote={setNote}
             onSelectCategory={setSelectedCategory}
+            currencySymbol={currencySymbol}
           />
         )}
       </Modal>
