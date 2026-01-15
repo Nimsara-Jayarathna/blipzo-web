@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
 
 import { Modal } from '../../components/Modal'
@@ -24,49 +24,58 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
 
 
 
-    const initMutation = useMutation({
-        mutationFn: emailChangeInit,
+    const {
+        execute: initEmailChange,
+        isLoading: isInitializing,
+        modal: initModal,
+    } = useBlockingAsync(emailChangeInit, {
+        successMessage: 'Verification code sent!',
         onSuccess: () => {
-
             setStep('verify-current')
             setOtp('')
         },
-        onError: () => {
-
-            onClose()
-        },
+        onError: () => onClose(),
     })
 
-    const verifyCurrentMutation = useMutation({
-        mutationFn: emailChangeVerifyCurrent,
+    const {
+        execute: verifyCurrent,
+        isLoading: isVerifyingCurrent,
+        modal: verifyCurrentModal,
+    } = useBlockingAsync(emailChangeVerifyCurrent, {
         onSuccess: (data) => {
             setChangeToken(data.changeToken)
             setStep('enter-new')
             setOtp('')
         },
-
     })
 
-    const requestNewMutation = useMutation({
-        mutationFn: () => emailChangeRequestNew(changeToken, newEmail),
-        onSuccess: () => {
+    const {
+        execute: requestNew,
+        isLoading: isRequestingNew,
+        modal: requestNewModal,
+    } = useBlockingAsync(
+        () => emailChangeRequestNew(changeToken, newEmail),
+        {
+            successMessage: 'Verification code sent!',
+            onSuccess: () => {
+                setStep('verify-new')
+                setOtp('')
+            },
+        }
+    )
 
-            setStep('verify-new')
-            setOtp('')
-        },
-
-    })
-
-    const confirmMutation = useMutation({
-        mutationFn: emailChangeConfirm,
+    const {
+        execute: confirmNew,
+        isLoading: isConfirming,
+        modal: confirmModal,
+    } = useBlockingAsync(emailChangeConfirm, {
+        successMessage: 'Email updated successfully!',
         onSuccess: (data) => {
             if (user) {
                 setAuth({ user: { ...user, email: data.email } })
             }
-
             onClose()
         },
-
     })
 
     // Reset state when opening
@@ -77,29 +86,29 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             setNewEmail('')
             setChangeToken('')
             // Auto-start the process when opened
-            initMutation.mutate()
+            initEmailChange()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
 
     const handleAction = () => {
         if (step === 'idle') {
-            initMutation.mutate()
+            initEmailChange()
         } else if (step === 'verify-current') {
-            verifyCurrentMutation.mutate(otp)
+            verifyCurrent(otp)
         } else if (step === 'enter-new') {
             if (!newEmail) return
-            requestNewMutation.mutate()
+            requestNew()
         } else if (step === 'verify-new') {
-            confirmMutation.mutate(otp)
+            confirmNew(otp)
         }
     }
 
     const isLoading =
-        initMutation.isPending ||
-        verifyCurrentMutation.isPending ||
-        requestNewMutation.isPending ||
-        confirmMutation.isPending
+        isInitializing ||
+        isVerifyingCurrent ||
+        isRequestingNew ||
+        isConfirming
 
     const getTitle = () => {
         switch (step) {
@@ -184,6 +193,10 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
                     </div>
                 )}
             </div>
+            {initModal}
+            {verifyCurrentModal}
+            {requestNewModal}
+            {confirmModal}
         </Modal>
     )
 }

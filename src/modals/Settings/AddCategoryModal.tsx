@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
@@ -29,27 +30,33 @@ export const AddCategoryModal = ({ open, onClose, categories, limit }: AddCatego
     }
   }, [open])
 
-  const createMutation = useMutation({
-    mutationFn: (payload: { name: string; type: 'income' | 'expense' }) => createCategory(payload),
-    onMutate: payload => {
+  const {
+    execute: executeCreate,
+    isLoading: isSaving,
+    modal: blockingModal,
+  } = useBlockingAsync(
+    (payload: { name: string; type: 'income' | 'expense' }) => {
       setSavingType(payload.type)
+      return createCategory(payload)
     },
-    onSuccess: () => {
-
-      queryClient.invalidateQueries({ queryKey: categoryKey })
-      setUiError(null)
-      setName('')
-      onClose()
-    },
-    onError: error => {
-      const mapped = mapApiError(error)
-      setUiError(mapped.message)
-
-    },
-    onSettled: () => {
-      setSavingType(null)
-    },
-  })
+    {
+      successMessage: 'Category created successfully!',
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: categoryKey })
+        setUiError(null)
+        setName('')
+        setSavingType(null)
+        onClose()
+      },
+      onError: error => {
+        const mapped = mapApiError(error)
+        setUiError(mapped.message)
+        setSavingType(null)
+      },
+      // Note: 'onSettled' equivalent is handled in onSuccess/onError logic or try/finally wrapper inside hook if needed,
+      // but here we just reset savingType in both callbacks.
+    }
+  )
 
   const handleSave = (type: 'income' | 'expense') => {
     const count = type === 'income' ? incomeCount : expenseCount
@@ -64,10 +71,10 @@ export const AddCategoryModal = ({ open, onClose, categories, limit }: AddCatego
       return
     }
     setUiError(null)
-    createMutation.mutate({ name: trimmed, type })
+    executeCreate({ name: trimmed, type })
   }
 
-  const isSaving = createMutation.isPending
+
   const hasLimit = typeof limit === 'number'
   const incomeCount = categories.filter(category => category.type === 'income').length
   const expenseCount = categories.filter(category => category.type === 'expense').length
@@ -141,6 +148,7 @@ export const AddCategoryModal = ({ open, onClose, categories, limit }: AddCatego
           </p>
         ) : null}
       </div>
+      {blockingModal}
     </Modal>
   )
 }

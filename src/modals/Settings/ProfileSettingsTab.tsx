@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useMutation } from '@tanstack/react-query'
 
 
 import { useAuth } from '../../hooks/useAuth'
 import { updateProfile } from '../../api/user'
 import { Spinner } from '../../components/Spinner'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
 export const ProfileSettingsTab = () => {
     const { user, setAuth } = useAuth()
@@ -19,27 +19,30 @@ export const ProfileSettingsTab = () => {
         }
     }, [user])
 
-    const updateMutation = useMutation({
-        mutationFn: updateProfile,
+    const {
+        execute: executeUpdate,
+        isLoading: isUpdating,
+        modal: blockingModal,
+    } = useBlockingAsync(updateProfile, {
+        successMessage: 'Profile updated successfully!',
         onSuccess: (data) => {
             if (user) {
                 // Update local auth state with new user data
                 setAuth({ user: { ...user, ...data.user } })
             }
-
         },
-
     })
 
     const handleSave = () => {
         if (!fname.trim() && !lname.trim()) {
             return
         }
-        updateMutation.mutate({ fname, lname })
+        executeUpdate({ fname, lname })
     }
 
     return (
         <div className="space-y-6 overflow-y-auto pr-2">
+            {blockingModal}
             <section>
                 <div className="mb-6">
                     <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Personal Profile</h2>
@@ -74,11 +77,11 @@ export const ProfileSettingsTab = () => {
                         <div className="mt-6 flex justify-end border-t border-[var(--border-glass)] pt-6">
                             <button
                                 onClick={handleSave}
-                                disabled={updateMutation.isPending}
+                                disabled={isUpdating}
                                 className="relative overflow-hidden rounded-xl bg-[#3498db] px-8 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 <span className="relative z-10 flex items-center gap-2">
-                                    {updateMutation.isPending && <Spinner size="sm" />}
+                                    {isUpdating && <Spinner size="sm" />}
                                     Save Changes
                                 </span>
                             </button>

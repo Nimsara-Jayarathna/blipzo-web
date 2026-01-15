@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
 
 import { Modal } from '../../components/Modal'
@@ -16,23 +16,27 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
 
-    const passwordMutation = useMutation({
-        mutationFn: () => changePassword(currentPassword, newPassword),
-        onSuccess: () => {
-
-            onClose()
-            // Reset state
-            setCurrentPassword('')
-            setNewPassword('')
-            setConfirmPassword('')
-        },
-
-    })
+    const {
+        execute: executeChange,
+        isLoading: isSubmitting,
+        modal: blockingModal,
+    } = useBlockingAsync(
+        () => changePassword(currentPassword, newPassword),
+        {
+            successMessage: 'Password updated successfully!',
+            onSuccess: () => {
+                onClose()
+                setCurrentPassword('')
+                setNewPassword('')
+                setConfirmPassword('')
+            },
+        }
+    )
 
     const handleSubmit = () => {
         if (newPassword.length < 6) return
         if (newPassword !== confirmPassword) return
-        passwordMutation.mutate()
+        executeChange()
     }
 
     return (
@@ -73,10 +77,10 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
                 <div className="flex gap-4 pt-4">
                     <button
                         onClick={handleSubmit}
-                        disabled={passwordMutation.isPending}
+                        disabled={isSubmitting}
                         className="flex-1 rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                     >
-                        {passwordMutation.isPending ? <Spinner size="sm" /> : 'Update Password'}
+                        {isSubmitting ? <Spinner size="sm" /> : 'Update Password'}
                     </button>
                     <button
                         onClick={onClose}
@@ -86,6 +90,7 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
                     </button>
                 </div>
             </div>
+            {blockingModal}
         </Modal>
     )
 }

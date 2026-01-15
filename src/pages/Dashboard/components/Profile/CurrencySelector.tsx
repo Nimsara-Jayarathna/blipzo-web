@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupportedCurrencies, updateUserCurrency } from '../../../../api/currencies'
 import { useAuth } from '../../../../hooks/useAuth'
 import { Spinner } from '../../../../components/Spinner'
+import { useBlockingAsync } from '../../../../hooks/useBlockingAsync'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
@@ -19,8 +20,12 @@ export const CurrencySelector = () => {
     staleTime: 1000 * 60 * 60, // 1 hour
   })
 
-  const updateCurrencyMutation = useMutation({
-    mutationFn: updateUserCurrency,
+  const {
+    execute: executeUpdate,
+    isLoading: isUpdating,
+    modal: blockingModal,
+  } = useBlockingAsync(updateUserCurrency, {
+    successMessage: 'Currency updated successfully!',
     onSuccess: (data) => {
       if (user) {
         // Update local auth state immediately
@@ -37,7 +42,6 @@ export const CurrencySelector = () => {
       setPendingCurrency(null)
     },
     onError: () => {
-
       setPendingCurrency(null)
     },
   })
@@ -45,7 +49,7 @@ export const CurrencySelector = () => {
   const handleSelect = (currency: Currency) => {
     if (user?.currency?._id === currency._id) return
     setPendingCurrency(currency._id)
-    updateCurrencyMutation.mutate(currency._id)
+    executeUpdate(currency._id)
   }
 
   if (isLoading) {
@@ -74,7 +78,7 @@ export const CurrencySelector = () => {
             <button
               key={currency._id}
               onClick={() => handleSelect(currency)}
-              disabled={updateCurrencyMutation.isPending}
+              disabled={isUpdating}
               className={`
                 group relative flex items-center justify-between rounded-xl border p-4 transition-all
                 ${isSelected
@@ -112,6 +116,7 @@ export const CurrencySelector = () => {
           )
         })}
       </div>
+      {blockingModal}
     </div>
   )
 }
