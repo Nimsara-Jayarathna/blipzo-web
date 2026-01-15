@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheckCircle, faTriangleExclamation, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faTriangleExclamation, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { useScrollLock } from '../hooks/useScrollLock'
 
 export type BlockingState = 'idle' | 'loading' | 'success' | 'error'
@@ -57,8 +57,15 @@ export const BlockingModal = ({ state, message, onClose }: BlockingModalProps) =
                                         exit={{ scale: 0.8, opacity: 0 }}
                                         className="flex flex-col items-center gap-4"
                                     >
-                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20 text-green-500">
-                                            <FontAwesomeIcon icon={faCheckCircle} className="h-8 w-8" />
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+                                            <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                <motion.path
+                                                    d="M4 12L9 17L20 6"
+                                                    initial={{ pathLength: 0, opacity: 0 }}
+                                                    animate={{ pathLength: 1, opacity: 1 }}
+                                                    transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                                                />
+                                            </svg>
                                         </div>
                                         <p className="text-lg font-semibold text-[var(--page-fg)]">{message || 'Success!'}</p>
                                     </motion.div>
@@ -70,8 +77,16 @@ export const BlockingModal = ({ state, message, onClose }: BlockingModalProps) =
                                         exit={{ scale: 0.8, opacity: 0 }}
                                         className="flex flex-col items-center gap-4"
                                     >
-                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20 text-red-500">
-                                            <FontAwesomeIcon icon={faTriangleExclamation} className="h-8 w-8" />
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-500">
+                                            <motion.div
+                                                animate={{
+                                                    rotate: [0, -10, 10, -10, 10, 0],
+                                                    scale: [1, 1.1, 1]
+                                                }}
+                                                transition={{ duration: 0.5, ease: "easeInOut" }}
+                                            >
+                                                <FontAwesomeIcon icon={faTriangleExclamation} className="text-4xl" />
+                                            </motion.div>
                                         </div>
                                         <div className="space-y-1">
                                             <h3 className="text-lg font-semibold text-[var(--page-fg)]">Error</h3>
