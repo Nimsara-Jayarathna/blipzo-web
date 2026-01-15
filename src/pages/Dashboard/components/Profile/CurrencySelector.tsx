@@ -37,7 +37,7 @@ export const CurrencySelector = () => {
         })
       }
       queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
-      queryClient.invalidateQueries({ queryKey: ['transactions'] }) // Invalidate to re-render with new currency if needed
+
 
       setPendingCurrency(null)
     },
