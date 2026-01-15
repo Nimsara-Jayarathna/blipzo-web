@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useBlockingAsync } from '../../hooks/useBlockingAsync'
+import { BlockingModal } from '../../components/BlockingModal'
 
 import dayjs from 'dayjs'
 import { AppNavbar } from '../../layouts/AppNavbar'
@@ -53,8 +54,7 @@ export const DashboardPage = () => {
 
   const {
     data: todayData,
-    isLoading: isTodayLoading,
-
+    isFetching: isTodayFetching,
   } = useQuery({
     queryKey: [...transactionKey, 'today', todayDate],
     queryFn: () =>
@@ -67,8 +67,7 @@ export const DashboardPage = () => {
 
   const {
     data: allData,
-    isLoading: isAllLoading,
-
+    isFetching: isAllFetching,
   } = useQuery({
     queryKey: [...transactionKey, 'all', { ...allFilters, categoryFilter: undefined }],
     queryFn: () =>
@@ -199,7 +198,7 @@ export const DashboardPage = () => {
           {activeTab === 'today' ? (
             <TodayTransactionsPage
               transactions={todayTransactions}
-              isLoading={isTodayLoading}
+              // isLoading={isTodayLoading} // Handled by blocking modal
               income={todayIncome}
               expense={todayExpense}
               balance={todayBalance}
@@ -210,7 +209,7 @@ export const DashboardPage = () => {
           ) : (
             <AllTransactionsPage
               transactions={allTransactions}
-              isLoading={isAllLoading}
+              // isLoading={isAllLoading} // Handled by blocking modal
               filters={allFilters}
               onFiltersChange={setAllFilters}
               onDeleteTransaction={handleDeleteTransaction}
@@ -232,6 +231,11 @@ export const DashboardPage = () => {
       />
       <Footer />
       {blockingModal}
+      <BlockingModal
+        state={isTodayFetching || isAllFetching ? 'loading' : 'idle'}
+        message="Updating transactions..."
+        onClose={() => { }}
+      />
     </div>
   )
 }
