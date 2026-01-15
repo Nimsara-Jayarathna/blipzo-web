@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
+import { OtpInput } from '../../components/OtpInput'
 import { useAuth } from '../../hooks/useAuth'
 import { emailChangeInit, emailChangeVerifyCurrent, emailChangeRequestNew, emailChangeConfirm } from '../../api/auth'
 
@@ -130,14 +131,10 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
                         <p className="mb-4 text-sm text-[var(--text-muted)]">
                             To secure your account, please enter the verification code sent to <strong className="text-[var(--page-fg)]">{user?.email}</strong>.
                         </p>
-                        <input
-                            type="text"
-                            placeholder="Enter 6-digit code"
+                        <OtpInput
                             value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                            maxLength={6}
-                            className="mb-4 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-center text-lg tracking-[0.5em] text-[var(--page-fg)] outline-none transition-all focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10"
-                            autoFocus
+                            onChange={setOtp}
+                            disabled={isLoading}
                         />
                     </div>
                 )}
@@ -161,14 +158,10 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
                         <p className="mb-4 text-sm text-[var(--text-muted)]">
                             Almost there! Enter the code sent to <strong className="text-[var(--page-fg)]">{newEmail}</strong>.
                         </p>
-                        <input
-                            type="text"
-                            placeholder="Enter 6-digit code"
+                        <OtpInput
                             value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                            maxLength={6}
-                            className="mb-4 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-center text-lg tracking-[0.5em] text-[var(--page-fg)] outline-none transition-all focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10"
-                            autoFocus
+                            onChange={setOtp}
+                            disabled={isLoading}
                         />
                     </div>
                 )}

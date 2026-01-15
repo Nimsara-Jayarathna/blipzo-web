@@ -12,6 +12,8 @@ import { useBlockingAsync } from '../../../hooks/useBlockingAsync'
 import { useNavigate } from 'react-router-dom'
 
 
+import { OtpInput } from '../../../components/OtpInput'
+
 interface AuthModalProps {
   open: boolean
   mode: AuthMode | null
@@ -54,6 +56,8 @@ export const AuthModal = ({
 
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
+  const [registerResendCountdown, setRegisterResendCountdown] = useState<number>(0)
+
   // Reset Password State
   const [resetConfirmPassword, setResetConfirmPassword] = useState('')
 
@@ -67,6 +71,10 @@ export const AuthModal = ({
     successMessage: 'Verification code sent!',
     onSuccess: () => {
       setStep('otp')
+      // Set resend timestamp in future (e.g., 60s)
+      const nextResend = Date.now() + 60000
+      localStorage.setItem(`auth_registration_next_resend_${formState.email}`, nextResend.toString())
+      setRegisterResendCountdown(60)
     },
   })
 
@@ -134,6 +142,7 @@ export const AuthModal = ({
     setConfirmPassword('')
     setResetConfirmPassword('')
     setShowExitConfirm(false)
+    setRegisterResendCountdown(0)
   }
 
   const handleModeSwitch = (newMode: AuthMode) => {
@@ -148,8 +157,38 @@ export const AuthModal = ({
         resetInternalState()
       }, 300) // Match the AnimatePresence duration roughly
       return () => clearTimeout(timer)
+    } else {
+      // On Open or active: check timer if in OTP step
+      if (activeMode === 'register' && step === 'otp') {
+        const storedTime = localStorage.getItem(`auth_registration_next_resend_${formState.email}`)
+        if (storedTime) {
+          const expiresAt = parseInt(storedTime, 10)
+          const timeLeft = Math.ceil((expiresAt - Date.now()) / 1000)
+          if (timeLeft > 0) {
+            setRegisterResendCountdown(timeLeft)
+          } else {
+            setRegisterResendCountdown(0)
+          }
+        }
+      }
     }
-  }, [open])
+  }, [open, activeMode, step, formState.email])
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (registerResendCountdown > 0) {
+      const timer = setInterval(() => {
+        setRegisterResendCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [registerResendCountdown])
 
   const handleAttemptClose = () => {
     // If in registration mode and progress has been made (OTP or Details step)
@@ -164,6 +203,13 @@ export const AuthModal = ({
     setShowExitConfirm(false)
     onClose() // Actually close
     // Optional: Reset step effectively happens on next open due to component unmount or we can force it here
+  }
+
+  const handleResendOtp = async () => {
+    if (activeMode === 'register' && step === 'otp' && registerResendCountdown === 0) {
+      // Re-trigger init
+      await executeInit(formState.email)
+    }
   }
 
   const handleRegisterSubmit = (e: FormEvent) => {
@@ -197,7 +243,7 @@ export const AuthModal = ({
   const handleResetSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (formState.password !== resetConfirmPassword) {
-
+      // Logic for mismatch if needed, currently just return
       return
     }
     if (resetToken) {
@@ -340,15 +386,30 @@ export const AuthModal = ({
                     <p className="mb-4 text-center text-sm text-[var(--text-muted)]">
                       Enter the code sent to <strong>{formState.email}</strong>
                     </p>
-                    <input
-                      type="text"
-                      placeholder="6-digit Code"
-                      required
-                      maxLength={6}
-                      className="w-full rounded-2xl border border-[var(--input-border)] bg-[var(--input-bg)] px-5 py-3.5 text-center text-lg tracking-[0.5em] text-[var(--page-fg)] placeholder:tracking-normal placeholder:text-[var(--text-muted)] outline-none transition focus:border-[#3498db]/30 focus:ring-4 focus:ring-[#3498db]/5"
+                    <OtpInput
                       value={otp}
-                      onChange={event => setOtp(event.target.value.replace(/\D/g, ''))}
+                      onChange={setOtp}
+                      disabled={isVerifyLoading}
                     />
+
+                    <div className="mt-4 flex items-center justify-between text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setStep('email')}
+                        className="text-[var(--text-subtle)] hover:text-[var(--page-fg)] hover:underline"
+                      >
+                        Change email
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={registerResendCountdown > 0 || isInitLoading}
+                        onClick={handleResendOtp}
+                        className={`font-medium ${registerResendCountdown > 0 ? 'text-[var(--text-muted)] cursor-wait' : 'text-[#3498db] hover:underline'}`}
+                      >
+                        {registerResendCountdown > 0 ? `Resend in ${registerResendCountdown}s` : 'Resend Code'}
+                      </button>
+                    </div>
                   </div>
                 )}
 
