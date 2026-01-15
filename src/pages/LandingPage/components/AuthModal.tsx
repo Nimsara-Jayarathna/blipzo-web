@@ -1,6 +1,6 @@
 import { type FormEvent, useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { useMutation } from '@tanstack/react-query'
+
 
 import { Modal } from '../../../components/Modal'
 import { Spinner } from '../../../components/Spinner'
@@ -111,27 +111,36 @@ export const AuthModal = ({
     }
   )
 
+
   // --- Forgot Password Mutation ---
-  const forgotPasswordMutation = useMutation({
-    mutationFn: passwordForgot,
+  const {
+    execute: executeForgot,
+    isLoading: isForgotLoading,
+    modal: forgotModal,
+  } = useBlockingAsync(passwordForgot, {
+    successMessage: 'Reset link sent!',
     onSuccess: () => {
-
-    },
-    onError: () => {
-
+      // Stay on this screen or return to login? Usually stay to let them check email.
+      // Or we can switch to login for them to sign in after clicking link
     },
   })
 
   // --- Reset Password Mutation ---
-  const resetPasswordMutation = useMutation({
-    mutationFn: ({ token, password }: { token: string; password: string }) => passwordReset(token, password),
-    onSuccess: () => {
-
-      onModeChange('login')
-      navigate('/')
-    },
-
-  })
+  const {
+    execute: executeReset,
+    isLoading: isResetLoading,
+    modal: resetModal,
+  } = useBlockingAsync(
+    async ({ token, password }: { token: string; password: string }) => passwordReset(token, password),
+    {
+      successMessage: 'Password reset successfully!',
+      onSuccess: () => {
+        onModeChange('login')
+        navigate('/')
+        resetInternalState()
+      },
+    }
+  )
 
 
   // Reset wizard on close or mode switch
@@ -237,7 +246,7 @@ export const AuthModal = ({
 
   const handleForgotSubmit = (e: FormEvent) => {
     e.preventDefault()
-    forgotPasswordMutation.mutate(formState.email)
+    executeForgot(formState.email)
   }
 
   const handleResetSubmit = (e: FormEvent) => {
@@ -247,11 +256,11 @@ export const AuthModal = ({
       return
     }
     if (resetToken) {
-      resetPasswordMutation.mutate({ token: resetToken, password: formState.password })
+      executeReset({ token: resetToken, password: formState.password })
     }
   }
 
-  const isLoading = parentLoading || isInitLoading || isVerifyLoading || isCompleteLoading
+  const isLoading = parentLoading || isInitLoading || isVerifyLoading || isCompleteLoading || isForgotLoading || isResetLoading
 
   const isLogin = activeMode === 'login'
 
@@ -260,6 +269,8 @@ export const AuthModal = ({
       {initModal}
       {verifyModal}
       {completeModal}
+      {forgotModal}
+      {resetModal}
 
       <ConfirmationModal
         open={showExitConfirm}

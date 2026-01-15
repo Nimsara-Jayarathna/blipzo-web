@@ -45,11 +45,11 @@ export const ConfirmationModal = ({
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     >
                         <div className="flex flex-col gap-4">
-                            <div className="flex items-start gap-4">
+                            <div className="flex items-center gap-4">
                                 <div
                                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${type === 'danger' || type === 'warning'
-                                            ? 'bg-red-500/10 text-red-500'
-                                            : 'bg-blue-500/10 text-blue-500'
+                                        ? 'bg-red-500/10 text-red-500'
+                                        : 'bg-blue-500/10 text-blue-500'
                                         }`}
                                 >
                                     <FontAwesomeIcon
@@ -57,13 +57,14 @@ export const ConfirmationModal = ({
                                         className="h-6 w-6"
                                     />
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-[var(--page-fg)]">{title}</h3>
-                                    <p className="mt-1 text-sm text-[var(--text-muted)]">{message}</p>
-                                </div>
+                                <h3 className="text-lg font-semibold text-[var(--page-fg)]">{title}</h3>
                             </div>
 
-                            <div className="mt-2 flex justify-end gap-3">
+                            <div className="px-1">
+                                <p className="text-sm text-[var(--text-muted)] leading-relaxed">{message}</p>
+                            </div>
+
+                            <div className="mt-6 flex w-full items-center justify-between gap-3">
                                 <button
                                     type="button"
                                     onClick={onCancel}
@@ -75,8 +76,8 @@ export const ConfirmationModal = ({
                                     type="button"
                                     onClick={onConfirm}
                                     className={`rounded-full px-5 py-2 text-sm font-bold text-white shadow-lg transition active:scale-95 ${type === 'danger' || type === 'warning'
-                                            ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20'
-                                            : 'bg-[#3498db] hover:bg-[#2F89C9] shadow-[#3498db]/20'
+                                        ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20'
+                                        : 'bg-[#3498db] hover:bg-[#2F89C9] shadow-[#3498db]/20'
                                         }`}
                                 >
                                     {confirmText}
