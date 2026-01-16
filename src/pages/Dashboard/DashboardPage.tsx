@@ -22,6 +22,8 @@ import type { Transaction } from '../../types'
 import type { TransactionFilters } from '../../api/transactions'
 import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
+import { faChartPie } from '@fortawesome/free-solid-svg-icons'
+import { SummaryModal } from '../../modals/SummaryModal'
 
 
 const transactionKey = ['transactions']
@@ -37,6 +39,7 @@ export const DashboardPage = () => {
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [isReportsOpen, setReportsOpen] = useState(false)
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
+  const [isSummaryOpen, setSummaryOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today')
   const [todayTransactions, setTodayTransactions] = useState<Transaction[]>([])
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
@@ -164,7 +167,14 @@ export const DashboardPage = () => {
 
   const displayName = user?.name?.split(' ')[0] ?? user?.email ?? 'there'
 
-
+  const filteredAllTransactions =
+    allFilters.categoryFilter === 'all'
+      ? allTransactions
+      : allTransactions.filter(transaction => {
+        const transactionCategoryId =
+          transaction.categoryId ?? (typeof transaction.category === 'string' ? transaction.category : undefined)
+        return transactionCategoryId === allFilters.categoryFilter
+      })
 
   return (
     <div
@@ -208,7 +218,7 @@ export const DashboardPage = () => {
             />
           ) : (
             <AllTransactionsPage
-              transactions={allTransactions}
+              transactions={filteredAllTransactions}
               // isLoading={isAllLoading} // Handled by blocking modal
               filters={allFilters}
               onFiltersChange={setAllFilters}
@@ -220,9 +230,24 @@ export const DashboardPage = () => {
         </Widget>
       </main>
 
+      {activeTab === 'all' && (
+        <FloatingActionButton
+          onClick={() => setSummaryOpen(true)}
+          icon={faChartPie}
+          label="View Summary"
+          className="bottom-24 sm:bottom-28 bg-[var(--surface-glass)] text-[var(--fg)] hover:bg-[var(--surface-glass-thick)] border border-[var(--border-glass)]"
+        />
+      )}
+
       <FloatingActionButton onClick={() => setAddTransactionOpen(true)} />
 
       <SettingsModal open={isSettingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SummaryModal
+        open={isSummaryOpen}
+        onClose={() => setSummaryOpen(false)}
+        transactions={filteredAllTransactions}
+        currency={user?.currency?.code}
+      />
       <ReportsModal open={isReportsOpen} onClose={() => setReportsOpen(false)} />
       <AddTransactionModal
         open={isAddTransactionOpen}
