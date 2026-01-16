@@ -1,5 +1,5 @@
 import { Modal } from '../components/Modal'
-import { formatCurrency, formatShortDate } from '../utils/format'
+import { formatCurrency } from '../utils/format'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowDown, faArrowUp, faWallet, faTimes } from '@fortawesome/free-solid-svg-icons'
 import type { Transaction } from '../types'
@@ -14,34 +14,36 @@ interface SummaryModalProps {
     filters?: AllTransactionsFilters
 }
 
-// Helper to split currency and amount for styling
-const StyledAmount = ({ amount, currency, isNegative = false, className = '' }: { amount: number, currency: string, isNegative?: boolean, className?: string }) => {
-    // Format: "LKR 1,234.00"
-    const formatted = formatCurrency(Math.abs(amount), currency)
-    // Extract parts (crude but effective given formatCurrency output)
-    // Assuming format is "CODE 123.00" or "$123.00". 
-    // For this specific request, we want to separate the code/symbol from the value if possible, 
-    // or just rely on the formatted string but wrap in () if negative.
-
-    // Let's stick to the requested parentheses for negative
-    const displayValue = isNegative ? `(${formatted})` : formatted
-
-    // If we want to style LKR differently, we'd need to parse it. 
-    // For now, let's just make the font lighter for the whole currency code if it's text.
-    // A regex to match the currency code at the start
-    const match = displayValue.match(/^([A-Z]{3}|[^0-9\s]+)\s?(.+)/)
-
-    if (match) {
-        const [_, code, val] = match
+/**
+ * Modern typographic styling for currency amounts.
+ */
+const StyledAmount = ({ amount, currency, isNegative = false, className = '', mutedZero = false }: { amount: number, currency: string, isNegative?: boolean, className?: string, mutedZero?: boolean }) => {
+    if (amount === 0 && mutedZero) {
         return (
-            <span className={className}>
-                <span className="mr-1 text-0.8em font-normal opacity-70">{code}</span>
-                <span>{val}</span>
+            <span className={`${className} text-[var(--muted-fg)] opacity-40 font-medium`}>
+                <span className="text-[0.6em] mr-1.5 font-light tracking-widest uppercase">{currency}</span>
+                <span>0.00</span>
             </span>
         )
     }
 
-    return <span className={className}>{displayValue}</span>
+    const absAmount = Math.abs(amount)
+    const formatted = formatCurrency(absAmount, currency)
+
+    const match = formatted.match(/^([A-Z]{3}|[^0-9\s]+)\s?(.+)/)
+    const currencyPart = match ? match[1] : currency
+    const valuePart = match ? match[2] : formatted
+
+    return (
+        <span className={`${className} inline-flex items-baseline`}>
+            {isNegative && <span className="mr-0.5 opacity-30 font-light">(</span>}
+            <span className="mr-2 text-[0.55em] font-medium tracking-widest uppercase opacity-40 leading-none">
+                {currencyPart}
+            </span>
+            <span className="leading-none">{valuePart}</span>
+            {isNegative && <span className="ml-0.5 opacity-30 font-light">)</span>}
+        </span>
+    )
 }
 
 export const SummaryModal = ({ open, onClose, transactions, currency = 'LKR', filters }: SummaryModalProps) => {
@@ -56,84 +58,97 @@ export const SummaryModal = ({ open, onClose, transactions, currency = 'LKR', fi
     const balance = income - expense
     const isNegative = balance < 0
 
-    // Date Range Logic
-    const startDate = filters?.startDate ? dayjs(filters.startDate).format('MMM D') : 'Start'
-    const endDate = filters?.endDate ? dayjs(filters.endDate).format('MMM D, YYYY') : 'End'
-    const dateRangeText = filters?.startDate && filters?.endDate ? `${startDate} - ${endDate}` : 'All Time'
+    const startDate = filters?.startDate ? dayjs(filters.startDate).format('MMM D') : ''
+    const endDate = filters?.endDate ? dayjs(filters.endDate).format('MMM D, YYYY') : ''
+    const dateRangeText = startDate && endDate ? `${startDate} — ${endDate}` : 'Overall Summary'
+
+    const customClose = (
+        <button
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--muted-fg)] transition-all hover:bg-black/[0.04] dark:hover:bg-white/[0.08] active:scale-90"
+        >
+            <FontAwesomeIcon icon={faTimes} className="h-4 w-4" />
+        </button>
+    )
 
     return (
-        <Modal open={open} onClose={onClose} title="Transaction Summary" showCloseButton={false}>
-            {/* Custom Header with X button */}
-            <div className="absolute right-4 top-4">
-                <button
-                    onClick={onClose}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted-fg)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
-                >
-                    <FontAwesomeIcon icon={faTimes} />
-                </button>
-            </div>
+        <Modal
+            open={open}
+            onClose={onClose}
+            title="Transaction Summary"
+            subtitle={dateRangeText}
+            headerActions={customClose}
+            showCloseButton={false}
+        >
+            <div className="flex flex-col gap-8 pt-2 pb-2">
+                <div className="flex flex-col gap-6">
 
-            <div className="flex flex-col gap-6">
-                <div className="text-center">
-                    <p className="text-sm font-medium text-[var(--muted-fg)] uppercase tracking-wide opacity-80">{dateRangeText}</p>
-                </div>
-
-                <div className="grid gap-4">
-                    {/* Balance Card */}
+                    {/* Main Net Balance Card - Floating Effect */}
                     <div
-                        className={`relative overflow-hidden rounded-3xl p-6 ring-1 ring-inset transition-colors duration-300
+                        className={`group relative overflow-hidden rounded-[2.5rem] p-8 transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none
                             ${isNegative
-                                ? 'bg-rose-50/50 ring-rose-200 dark:bg-rose-900/10 dark:ring-rose-800/30'
-                                : 'bg-emerald-50/50 ring-emerald-200 dark:bg-emerald-900/10 dark:ring-emerald-800/30'
+                                ? 'bg-rose-50/80 dark:bg-rose-500/[0.08]'
+                                : 'bg-emerald-50/80 dark:bg-emerald-500/[0.08]'
                             }`}
                     >
-                        <div className="flex items-center justify-between gap-4">
-                            <div className={`flex h-12 w-12 items-center justify-center rounded-full text-xl
-                                ${isNegative ? 'bg-rose-100 text-rose-500 dark:bg-rose-500/20' : 'bg-emerald-100 text-emerald-500 dark:bg-emerald-500/20'}`}>
-                                <FontAwesomeIcon icon={faWallet} />
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-[var(--muted-fg)]">Net Balance</p>
-                                <div className={`text-2xl font-bold ${isNegative ? 'text-rose-500' : 'text-emerald-500'}`}>
-                                    <StyledAmount amount={balance} currency={currency} isNegative={isNegative} />
+                        <div className="relative flex flex-col gap-5">
+                            <div className="flex items-center gap-3">
+                                <div className={`flex h-9 w-9 items-center justify-center rounded-2xl shadow-sm ring-1 ring-black/5
+                                    ${isNegative ? 'bg-rose-500/10 text-rose-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                                    <FontAwesomeIcon icon={faWallet} className="h-3.5 w-3.5" />
                                 </div>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--muted-fg)] opacity-70">
+                                    Net Balance
+                                </span>
+                            </div>
+
+                            <div className={`text-5xl font-black tracking-tighter transition-colors ${isNegative ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                <StyledAmount amount={balance} currency={currency} isNegative={isNegative} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Income Card */}
-                        <div className="flex flex-col items-end justify-between rounded-3xl bg-[var(--surface-card)] p-5 shadow-sm ring-1 ring-inset ring-[var(--border-subtle)]">
-                            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-500 dark:bg-emerald-500/20">
-                                <FontAwesomeIcon icon={faArrowUp} className="h-4 w-4" />
+                    {/* Secondary Cards Grid - Pure Floating Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                        {/* Income Box */}
+                        <div className="relative flex flex-col gap-4 rounded-[2.25rem] bg-white dark:bg-white/[0.03] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] ring-1 ring-black/[0.03] dark:ring-white/[0.05] transition-all hover:translate-y-[-4px]">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                                    <FontAwesomeIcon icon={faArrowUp} className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-fg)] opacity-50">Income</span>
                             </div>
-                            <div className="text-right">
-                                <p className="text-xs font-medium text-[var(--muted-fg)]">Total Income</p>
-                                <p className={`text-lg font-bold ${income === 0 ? 'text-[var(--muted-fg)] opacity-50' : 'text-[var(--fg)]'}`}>
-                                    <StyledAmount amount={income} currency={currency} />
-                                </p>
+                            <div className="text-2xl font-bold tracking-tight text-[var(--fg)] pl-1">
+                                <StyledAmount amount={income} currency={currency} mutedZero={true} />
                             </div>
                         </div>
 
-                        {/* Expense Card */}
-                        <div className="flex flex-col items-end justify-between rounded-3xl bg-[var(--surface-card)] p-5 shadow-sm ring-1 ring-inset ring-[var(--border-subtle)]">
-                            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-500 dark:bg-rose-500/20">
-                                <FontAwesomeIcon icon={faArrowDown} className="h-4 w-4" />
+                        {/* Expense Box */}
+                        <div className="relative flex flex-col gap-4 rounded-[2.25rem] bg-white dark:bg-white/[0.03] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] ring-1 ring-black/[0.03] dark:ring-white/[0.05] transition-all hover:translate-y-[-4px]">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
+                                    <FontAwesomeIcon icon={faArrowDown} className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-fg)] opacity-50">Expense</span>
                             </div>
-                            <div className="text-right">
-                                <p className="text-xs font-medium text-[var(--muted-fg)]">Total Expense</p>
-                                <p className={`text-lg font-bold ${expense === 0 ? 'text-[var(--muted-fg)] opacity-50' : 'text-[var(--fg)]'}`}>
-                                    <StyledAmount amount={expense} currency={currency} />
-                                </p>
+                            <div className="text-2xl font-bold tracking-tight text-[var(--fg)] pl-1">
+                                <StyledAmount amount={expense} currency={currency} mutedZero={true} />
                             </div>
                         </div>
+
                     </div>
                 </div>
 
-                <div className="text-center">
-                    <p className="text-xs text-[var(--muted-fg)]">
-                        Summary based on {transactions.length} filtered transactions
-                    </p>
+                {/* Status Indicator Footer */}
+                <div className="mt-2 flex flex-col items-center gap-3">
+                    <div className="h-px w-12 bg-gradient-to-r from-transparent via-[var(--border-color)] to-transparent opacity-50" />
+                    <div className="flex items-center gap-2.5">
+                        <div className={`h-1.5 w-1.5 rounded-full ${isNegative ? 'bg-rose-400' : 'bg-emerald-400'} animate-pulse`} />
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--muted-fg)] opacity-30">
+                            {transactions.length} Records Analyzed
+                        </p>
+                    </div>
                 </div>
             </div>
         </Modal>
