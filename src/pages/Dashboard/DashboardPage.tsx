@@ -247,6 +247,7 @@ export const DashboardPage = () => {
         onClose={() => setSummaryOpen(false)}
         transactions={filteredAllTransactions}
         currency={user?.currency?.code}
+        filters={allFilters}
       />
       <ReportsModal open={isReportsOpen} onClose={() => setReportsOpen(false)} />
       <AddTransactionModal

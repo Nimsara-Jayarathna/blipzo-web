@@ -12,6 +12,7 @@ interface ModalProps {
   headerActions?: ReactNode
   widthClassName?: string
   zIndex?: string
+  showCloseButton?: boolean
 }
 
 export const Modal = ({
@@ -24,6 +25,7 @@ export const Modal = ({
   headerActions,
   widthClassName = 'max-w-lg',
   zIndex = 'z-50',
+  showCloseButton = true,
 }: ModalProps) => {
   useScrollLock(open)
 
@@ -57,13 +59,15 @@ export const Modal = ({
             <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
             <div className="absolute right-6 top-6 flex items-center gap-2">
               {headerActions}
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
-              >
-                Close
-              </button>
+              {showCloseButton ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
+                >
+                  Close
+                </button>
+              ) : null}
             </div>
             <div className="flex flex-col gap-5">
               {title ? (
