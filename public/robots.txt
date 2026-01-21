@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Disallow access to the dashboard as it requires authentication (cookies)
+Disallow: /dashboard
+
+# Disallow access to API endpoints to prevent crawling backend routes
+Disallow: /api
