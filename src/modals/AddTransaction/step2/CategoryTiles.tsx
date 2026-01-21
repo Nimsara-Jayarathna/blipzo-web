@@ -17,9 +17,10 @@ export const CategoryTiles = ({ categories, selectedCategoryId, isLoading, onSel
   const [isExpanded, setIsExpanded] = useState(false)
 
   // Reset expansion when filtered categories change significantly (optional, but good UX if switching types)
+  const categoryIds = categories.map(c => c.id).join(',')
   useEffect(() => {
     setIsExpanded(false)
-  }, [categories.map(c => c.id).join(',')])
+  }, [categoryIds])
 
   if (isLoading) {
     return (

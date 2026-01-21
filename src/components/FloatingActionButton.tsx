@@ -1,11 +1,12 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import type { IconProp } from '@fortawesome/fontawesome-svg-core'
 
 interface FloatingActionButtonProps {
   onClick: () => void
   label?: string
   className?: string
-  icon?: any
+  icon?: IconProp
 }
 
 export const FloatingActionButton = ({ onClick, label = 'Add transaction', className = '', icon = faPlus }: FloatingActionButtonProps) => {

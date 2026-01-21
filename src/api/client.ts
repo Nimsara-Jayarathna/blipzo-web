@@ -92,22 +92,44 @@ apiClient.interceptors.response.use(
   },
 )
 
-const normalizeError = (error: any): ApiError => {
-  const responseData = error.response?.data as any
-  const status = error.response?.status
+interface CaughtError {
+  response?: {
+    data?: unknown
+    status?: number
+  }
+  code?: string
+  message?: string
+}
+
+interface ApiErrorContent {
+  code?: string
+  message?: string
+  details?: Record<string, string[]>
+}
+
+interface ApiResponse {
+  success?: boolean
+  error?: ApiErrorContent
+}
+
+const normalizeError = (error: unknown): ApiError => {
+  const typedError = error as CaughtError
+  const responseData = typedError.response?.data as ApiResponse | undefined
+  const status = typedError.response?.status
 
   if (responseData && typeof responseData === 'object' && responseData.success === false && responseData.error) {
+    const errObj = responseData.error
     return {
-      code: responseData.error.code || 'UNKNOWN_ERROR',
-      message: responseData.error.message || 'An error occurred',
-      details: responseData.error.details,
+      code: errObj.code || 'UNKNOWN_ERROR',
+      message: errObj.message || 'An error occurred',
+      details: errObj.details,
       status,
     }
   }
 
   return {
-    code: error.code || 'UNKNOWN_ERROR',
-    message: error.message || 'An unknown error occurred',
+    code: typedError.code || 'UNKNOWN_ERROR',
+    message: typedError.message || 'An unknown error occurred',
     status,
   }
 }
