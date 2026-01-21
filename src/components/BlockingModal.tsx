@@ -47,7 +47,7 @@ export const BlockingModal = ({ state, message, onClose }: BlockingModalProps) =
                                         className="flex flex-col items-center gap-4"
                                     >
                                         <FontAwesomeIcon icon={faSpinner} className="h-12 w-12 animate-spin text-accent" />
-                                        <p className="text-lg font-medium text-[var(--page-fg)]">Processing...</p>
+                                        <p className="text-lg font-medium text-[var(--page-fg)]">{message || 'Processing...'}</p>
                                     </motion.div>
                                 ) : state === 'success' ? (
                                     <motion.div

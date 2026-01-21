@@ -13,6 +13,7 @@ export interface UseBlockingAsyncResult<T, Args extends any[]> {
 interface BlockingOptions<T> {
     successMessage?: string
     successDuration?: number
+    loadingMessage?: string
     onSuccess?: (data: T) => void
     onError?: (error: ApiError | Error) => void
 }
@@ -32,7 +33,7 @@ export const useBlockingAsync = <T, Args extends any[]>(
     const execute = useCallback(
         async (...args: Args) => {
             setState('loading')
-            setMessage('')
+            setMessage(options.loadingMessage || '')
             try {
                 const result = await asyncFn(...args)
                 setState('success')

@@ -41,7 +41,6 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
   const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'))
   const [note, setNote] = useState('')
   const [step, setStep] = useState<AddTransactionStep>(1)
-  const [isLoadingCategories, setIsLoadingCategories] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -54,29 +53,21 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
     }
   }, [open])
 
-  useEffect(() => {
-    if (step !== 2) return
-
-    const loadCategories = async () => {
-      try {
-        setIsLoadingCategories(true)
-        const result = await getCategories()
-        const mapped: CategoryOption[] = (result.categories ?? []).map(item => ({
-          id: item.id ?? item._id ?? item.name,
-          name: item.name,
-          type: item.type,
-          isDefault: item.isDefault,
-        }))
-        setCategories(mapped)
-      } catch {
-        // ignore error
-      } finally {
-        setIsLoadingCategories(false)
-      }
-    }
-
-    void loadCategories()
-  }, [step])
+  /* REPLACE passive fetching with blocking action */
+  const {
+    execute: executeLoadCategories,
+    modal: loadCategoriesModal,
+  } = useBlockingAsync(getCategories, {
+     loadingMessage: 'Loading active categories...',
+     // No success message needed for internal data loading, or maybe a subtle one?  
+     // Usually better to be silent on success for "migrations" like this, but 
+     // the hook might default to "Operation successful" if not specified?
+     // Let's check useBlockingAsync implementation. 
+     // It says: setMessage(options.successMessage || 'Operation successful')
+     // defaulting to that might be annoying.
+     // However, we want to transition immediately.
+     successDuration: 0, // Instant transition
+  })
 
   useEffect(() => {
     if (!categories.length) {
@@ -118,11 +109,9 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
     event.preventDefault()
     const numericAmount = Number(amount)
     if (!numericAmount || Number.isNaN(numericAmount)) {
-
       return
     }
     if (!selectedCategory) {
-
       return
     }
 
@@ -135,14 +124,28 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
     })
   }
 
-  const handleSelectTypeAndContinue = (selectedType: 'income' | 'expense') => {
+  const handleSelectTypeAndContinue = async (selectedType: 'income' | 'expense') => {
     const numericAmount = Number(amount)
     if (!numericAmount || Number.isNaN(numericAmount) || numericAmount <= 0) {
-
       return
     }
+
     setTransactionType(selectedType)
-    setStep(2)
+
+    // Blocking fetch
+    const result = await executeLoadCategories()
+    
+    // logic continues if result is present (success)
+    if (result) {
+        const mapped: CategoryOption[] = (result.categories ?? []).map(item => ({
+          id: item.id ?? item._id ?? item.name,
+          name: item.name,
+          type: item.type,
+          isDefault: item.isDefault,
+        }))
+        setCategories(mapped)
+        setStep(2)
+    }
   }
 
   const handleBackToStepOne = () => {
@@ -152,6 +155,7 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
   return (
     <>
       {blockingModal}
+      {loadCategoriesModal}
       <Modal
         open={open}
         onClose={onClose}
@@ -175,7 +179,7 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
             categories={categories}
             filteredCategories={filteredCategories}
             selectedCategory={selectedCategory}
-            isLoadingCategories={isLoadingCategories}
+            isLoadingCategories={false}
             isSubmitting={isCreating}
             onBack={handleBackToStepOne}
             onSubmit={handleSubmit}
