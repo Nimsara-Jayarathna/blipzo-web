@@ -1,4 +1,4 @@
-import type { ReactNode, ChangeEvent } from 'react'
+import type { ChangeEvent } from 'react'
 interface StepOneProps {
   amount: string
   onChangeAmount: (value: string) => void
