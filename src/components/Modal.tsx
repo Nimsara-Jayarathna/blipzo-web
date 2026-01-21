@@ -76,7 +76,7 @@ export const Modal = ({
                   {subtitle ? <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p> : null}
                 </div>
               ) : null}
-              <div className="max-h-[65vh] overflow-y-auto pr-2">
+              <div className="max-h-[65vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
                 {children}
               </div>
               {footer ? <div className="border-t border-[var(--border-glass)] pt-4">{footer}</div> : null}
