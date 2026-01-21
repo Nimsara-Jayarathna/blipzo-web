@@ -49,31 +49,40 @@ export const StepTwo = ({
 
   return (
     <form className="flex flex-col gap-5 sm:gap-6" onSubmit={onSubmit}>
-      <div className="flex flex-col items-stretch gap-3 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-3 text-sm text-[var(--page-fg)] shadow-[0_18px_50px_-40px_rgba(15,23,42,0.35)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center justify-between sm:justify-start gap-3">
+      {/* Header Section */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        
+        {/* Row 1: Back + Amount */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1 text-xs font-medium text-[var(--text-muted)] backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] text-[var(--text-muted)] transition hover:border-accent/40 hover:bg-[var(--surface-hover)] hover:text-[var(--page-fg)] active:scale-95"
+            title="Go Back"
           >
-            ← Back
+            <span className="text-lg leading-none pb-0.5">←</span>
           </button>
-          <span className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 backdrop-blur-md">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">Amount</span>
-            <span className="text-sm font-semibold text-[var(--page-fg)]">{currencySymbol} {amount || '0.00'}</span>
-          </span>
+
+          <div className="flex h-10 flex-1 items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 sm:flex-none">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-70">Amount</span>
+            <span className="flex-1 text-right text-sm font-semibold text-[var(--page-fg)] sm:text-left">
+              {currencySymbol} {amount || '0.00'}
+            </span>
+          </div>
         </div>
-        <div className="inline-flex rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] shadow-soft backdrop-blur-md w-full sm:w-auto">
+
+        {/* Row 2: Toggle (Full width on mobile, auto on desktop) */}
+        <div className="flex h-10 w-full sm:w-auto overflow-hidden rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
           {(['income', 'expense'] as const).map(option => (
             <button
               key={option}
               type="button"
               onClick={() => onChangeType(option)}
-              className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] transition first:rounded-l-full last:rounded-r-full ${transactionType === option
+              className={`flex-1 sm:flex-none rounded-full px-6 text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${transactionType === option
                 ? option === 'income'
-                  ? 'bg-income text-white'
-                  : 'bg-expense text-white'
-                : 'text-[var(--text-muted)] hover:bg-accent/5'
+                  ? 'bg-income text-white shadow-sm'
+                  : 'bg-expense text-white shadow-sm'
+                : 'text-[var(--text-muted)] hover:text-[var(--page-fg)]'
                 }`}
             >
               {option}

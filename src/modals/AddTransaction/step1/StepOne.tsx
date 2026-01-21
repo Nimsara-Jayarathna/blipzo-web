@@ -1,3 +1,4 @@
+import type { ReactNode, ChangeEvent } from 'react'
 interface StepOneProps {
   amount: string
   onChangeAmount: (value: string) => void
@@ -5,23 +6,32 @@ interface StepOneProps {
   currencySymbol: string
 }
 
-export const StepOne = ({ amount, onChangeAmount, onSelectType, currencySymbol }: StepOneProps) => (
-  <div className="flex flex-col gap-8">
-    <div className="flex flex-col gap-4">
-      <label className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-widest text-center">Enter Amount</label>
-      <div className="relative">
-        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-4xl font-light text-[var(--text-muted)]">{currencySymbol}</span>
-        <input
-          type="number"
-          inputMode="decimal"
-          placeholder="0.00"
-          value={amount}
-          onChange={e => onChangeAmount(e.target.value)}
-          className="w-full rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] py-8 pl-14 pr-8 text-5xl font-light text-center text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/10"
-          autoFocus
-        />
+export const StepOne = ({ amount, onChangeAmount, onSelectType, currencySymbol }: StepOneProps) => {
+  const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    // Allow empty string or digits with up to 2 decimal places
+    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+      onChangeAmount(value)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-4">
+        <label className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-widest text-center">Enter Amount</label>
+        <div className="relative">
+          <span className="absolute left-6 top-1/2 -translate-y-1/2 text-4xl font-light text-[var(--text-muted)]">{currencySymbol}</span>
+          <input
+            type="number"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={amount}
+            onChange={handleAmountChange}
+            className="w-full rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] py-8 pl-14 pr-8 text-5xl font-light text-center text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/10"
+            autoFocus
+          />
+        </div>
       </div>
-    </div>
 
     <div className="grid grid-cols-2 gap-4 sm:gap-6">
       {(['income', 'expense'] as const).map(option => (
@@ -52,4 +62,5 @@ export const StepOne = ({ amount, onChangeAmount, onSelectType, currencySymbol }
       ))}
     </div>
   </div>
-)
+  )
+}
