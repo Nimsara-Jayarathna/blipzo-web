@@ -81,7 +81,7 @@ export const AppNavbar = ({
               <button
                 type="button"
                 onClick={onRegister}
-                className="hidden rounded-full bg-[#3498db] px-6 py-2 text-sm font-bold text-white shadow-[0_10px_20px_-5px_rgba(52,152,219,0.4)] transition hover:bg-[#2F89C9] sm:block"
+                className="rounded-full bg-[#3498db] px-4 py-2 text-xs font-bold text-white shadow-[0_10px_20px_-5px_rgba(52,152,219,0.4)] transition hover:bg-[#2F89C9] sm:px-6 sm:py-2 sm:text-sm"
               >
                 Create account
               </button>

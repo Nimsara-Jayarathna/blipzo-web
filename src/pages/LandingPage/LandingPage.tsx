@@ -135,6 +135,12 @@ export const LandingPage = () => {
           </div>
         </div>
 
+        <div className="mt-12 flex justify-center lg:hidden">
+          <div className="relative w-full max-w-md">
+            <DashboardPreview />
+          </div>
+        </div>
+
         <FeaturesSection />
       </div>
 
