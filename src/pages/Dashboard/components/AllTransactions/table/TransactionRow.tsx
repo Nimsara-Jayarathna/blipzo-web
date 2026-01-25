@@ -35,7 +35,7 @@ const DeleteActionCell = ({ canDelete, isDeleting, onClick }: DeleteActionCellPr
         title="Delete (today only)"
         onClick={onClick}
         disabled={isDeleting}
-        className={`${baseClasses} bg-transparent hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60`}
+        className={`${baseClasses} bg-transparent hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-200`}
       >
         <span className="text-sm leading-none" style={{ color: '#ff0000' }}>
           <FontAwesomeIcon icon={faTrash} />

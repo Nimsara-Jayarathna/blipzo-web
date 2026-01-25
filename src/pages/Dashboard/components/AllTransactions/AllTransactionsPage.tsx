@@ -26,7 +26,7 @@ export const AllTransactionsPage = ({
   const grouped = useGroupedTransactions(transactions, grouping)
 
   return (
-    <section className="space-y-4 rounded-[24px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-4 shadow-card backdrop-blur-xl sm:rounded-[34px] sm:p-8">
+    <section className="space-y-4 rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-4 shadow-sm backdrop-blur-xl sm:rounded-[2.5rem] sm:p-6">
       <div className="space-y-3">
         <div className="relative z-50">
           <FiltersBar
