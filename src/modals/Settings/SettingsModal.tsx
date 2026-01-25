@@ -56,17 +56,17 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${activeTab === tab.id
-                ? 'bg-accent text-white shadow-lg shadow-accent/25'
+                ? 'bg-[var(--surface-glass-thick)] text-[var(--accent)] border border-[var(--border-glass)]'
                 : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass-thick)] hover:text-[var(--page-fg)]'
                 }`}
             >
-              <FontAwesomeIcon icon={tab.icon} className={activeTab === tab.id ? 'text-white' : ''} />
+              <FontAwesomeIcon icon={tab.icon} className={activeTab === tab.id ? 'text-[var(--accent)]' : ''} />
               {tab.label}
             </button>
           ))}
         </nav>
 
-        <div className="flex h-[520px] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
+        <div className="flex min-h-[400px] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
           {activeTab === 'profile' ? (
             <ProfileSettingsTab />
           ) : activeTab === 'categories' ? (

@@ -87,8 +87,8 @@ export const SummaryModal = ({ open, onClose, transactions, currency = 'LKR', fi
                     <div
                         className={`group relative overflow-hidden rounded-[2.5rem] p-8 transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none
                             ${isNegative
-                                ? 'bg-rose-50/80 dark:bg-rose-500/[0.08]'
-                                : 'bg-emerald-50/80 dark:bg-emerald-500/[0.08]'
+                                ? 'bg-rose-50/50 dark:bg-rose-500/[0.05]'
+                                : 'bg-emerald-50/50 dark:bg-emerald-500/[0.05]'
                             }`}
                     >
                         <div className="relative flex flex-col gap-5">

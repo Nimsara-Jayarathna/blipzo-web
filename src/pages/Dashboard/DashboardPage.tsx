@@ -181,8 +181,11 @@ export const DashboardPage = () => {
       data-theme={theme}
       className="relative flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--page-fg)]"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(52,152,219,0.12),_transparent_60%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(46,204,113,0.1),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-hero-grid opacity-[0.03]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-[var(--page-overlay-strong)] via-[var(--page-overlay-soft)] to-transparent" />
+      {/* Subtle modern accent blobs */}
+      <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-[#3498db]/5 blur-[120px]" />
+      <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-[#2ecc71]/5 blur-[120px]" />
       <AppNavbar
         variant="dashboard"
         theme={theme}
