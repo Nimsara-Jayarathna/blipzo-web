@@ -27,13 +27,13 @@ export const StepOne = ({ amount, onChangeAmount, onSelectType, currencySymbol }
             placeholder="0.00"
             value={amount}
             onChange={handleAmountChange}
-            className="w-full rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] py-8 pl-14 pr-8 text-5xl font-light text-center text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:bg-[var(--surface-glass)] focus:outline-none focus:ring-4 focus:ring-accent/10 transition-all"
+            className="w-full rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] py-6 pl-14 pr-8 text-4xl font-light text-center text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:bg-[var(--surface-glass)] focus:outline-none focus:ring-4 focus:ring-accent/10 transition-all sm:py-8 sm:text-5xl"
             autoFocus
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
         {(['income', 'expense'] as const).map(option => (
           <button
             key={option}

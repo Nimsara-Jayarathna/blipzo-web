@@ -49,13 +49,13 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       title="Settings"
       widthClassName="max-w-4xl"
     >
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-[200px_1fr]">
-        <nav className="flex flex-col space-y-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[200px_1fr]">
+        <nav className="flex w-full gap-2 overflow-x-auto pb-1 md:flex-col md:gap-2 md:overflow-visible">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${activeTab === tab.id
+              className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-medium transition-all sm:text-sm md:px-4 md:py-3 ${activeTab === tab.id
                 ? 'bg-[var(--surface-glass-thick)] text-[var(--accent)] border border-[var(--border-glass)]'
                 : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass-thick)] hover:text-[var(--page-fg)]'
                 }`}
@@ -66,7 +66,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
           ))}
         </nav>
 
-        <div className="flex h-[550px] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
+        <div className="flex min-h-[360px] max-h-[60vh] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-4 sm:p-6 md:h-[550px] md:max-h-none">
           {activeTab === 'profile' ? (
             <ProfileSettingsTab />
           ) : activeTab === 'categories' ? (

@@ -78,7 +78,7 @@ export const StepTwo = ({
               key={option}
               type="button"
               onClick={() => onChangeType(option)}
-              className={`flex-1 sm:flex-none rounded-full px-6 text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${transactionType === option
+              className={`flex-1 sm:flex-none rounded-full px-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all sm:px-6 sm:text-[10px] ${transactionType === option
                 ? option === 'income'
                   ? 'bg-income text-white shadow-sm'
                   : 'bg-expense text-white shadow-sm'
