@@ -66,7 +66,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
           ))}
         </nav>
 
-        <div className="flex min-h-[400px] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
+        <div className="flex h-[550px] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
           {activeTab === 'profile' ? (
             <ProfileSettingsTab />
           ) : activeTab === 'categories' ? (

@@ -24,6 +24,8 @@ import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
 import { faChartPie } from '@fortawesome/free-solid-svg-icons'
 import { SummaryModal } from '../../modals/SummaryModal'
+import { getCategories } from '../../api/categories'
+import { getSupportedCurrencies } from '../../api/currencies'
 
 
 const transactionKey = ['transactions']
@@ -176,6 +178,29 @@ export const DashboardPage = () => {
         return transactionCategoryId === allFilters.categoryFilter
       })
 
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false)
+
+  const handleOpenSettings = async () => {
+    setIsSettingsLoading(true)
+    try {
+      await Promise.all([
+        queryClient.prefetchQuery({
+          queryKey: ['categories'],
+          queryFn: getCategories,
+          staleTime: 1000 * 60 * 5, // 5 minutes
+        }),
+        queryClient.prefetchQuery({
+          queryKey: ['currencies'],
+          queryFn: getSupportedCurrencies,
+          staleTime: 1000 * 60 * 60, // 1 hour
+        })
+      ])
+      setSettingsOpen(true)
+    } finally {
+      setIsSettingsLoading(false)
+    }
+  }
+
   return (
     <div
       data-theme={theme}
@@ -190,7 +215,7 @@ export const DashboardPage = () => {
         variant="dashboard"
         theme={theme}
         onToggleTheme={toggleTheme}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={handleOpenSettings}
         onOpenReports={() => setReportsOpen(true)}
         onLogout={handleLogout}
         userName={displayName}
@@ -261,8 +286,8 @@ export const DashboardPage = () => {
       <Footer />
       {blockingModal}
       <BlockingModal
-        state={isTodayLoading || isAllLoading ? 'loading' : 'idle'}
-        message="Updating transactions..."
+        state={isTodayLoading || isAllLoading || isSettingsLoading ? 'loading' : 'idle'}
+        message={isSettingsLoading ? 'Loading settings...' : 'Updating transactions...'}
         onClose={() => { }}
       />
     </div>

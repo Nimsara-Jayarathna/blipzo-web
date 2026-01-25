@@ -62,13 +62,6 @@ export const CurrencySelector = () => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold text-[var(--page-fg)]">Display Currency</h3>
-        <p className="text-sm text-[var(--text-muted)]">
-          Select your preferred currency for display across the application.
-        </p>
-      </div>
-
       <div className="grid gap-3 sm:grid-cols-2">
         {data?.currencies.map((currency) => {
           const isSelected = user?.currency?._id === currency._id || user?.currency?.code === currency.code
