@@ -198,7 +198,7 @@ export const DashboardPage = () => {
       ])
 
       if (sessionData && sessionData.user) {
-        setAuth({ user: sessionData.user, token: null })
+        setAuth({ user: sessionData.user, token: undefined })
       }
 
       setSettingsOpen(true)
