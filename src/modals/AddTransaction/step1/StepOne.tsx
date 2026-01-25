@@ -27,40 +27,40 @@ export const StepOne = ({ amount, onChangeAmount, onSelectType, currencySymbol }
             placeholder="0.00"
             value={amount}
             onChange={handleAmountChange}
-            className="w-full rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] py-8 pl-14 pr-8 text-5xl font-light text-center text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/10"
+            className="w-full rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] py-8 pl-14 pr-8 text-5xl font-light text-center text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:bg-[var(--surface-glass)] focus:outline-none focus:ring-4 focus:ring-accent/10 transition-all"
             autoFocus
           />
         </div>
       </div>
 
-    <div className="grid grid-cols-2 gap-4 sm:gap-6">
-      {(['income', 'expense'] as const).map(option => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onSelectType(option)}
-          className={`group relative flex flex-col items-center gap-3 overflow-hidden rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] p-6 transition backdrop-blur-md ${option === 'income'
+      <div className="grid grid-cols-2 gap-4 sm:gap-6">
+        {(['income', 'expense'] as const).map(option => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onSelectType(option)}
+            className={`group relative flex flex-col items-center gap-3 overflow-hidden rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] p-6 transition backdrop-blur-md ${option === 'income'
               ? 'hover:border-income/40 hover:bg-income/5'
               : 'hover:border-expense/40 hover:bg-expense/5'
-            }`}
-        >
-          <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110 ${option === 'income'
+              }`}
+          >
+            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-110 ${option === 'income'
               ? 'border-income/30 bg-income/10 text-income'
               : 'border-expense/30 bg-expense/10 text-expense'
-            }`}>
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {option === 'income' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
-              )}
-            </svg>
-          </div>
-          <span className={`text-sm font-bold uppercase tracking-widest ${option === 'income' ? 'text-income' : 'text-expense'
-            }`}>{option}</span>
-        </button>
-      ))}
+              }`}>
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {option === 'income' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+                )}
+              </svg>
+            </div>
+            <span className={`text-sm font-bold uppercase tracking-widest ${option === 'income' ? 'text-income' : 'text-expense'
+              }`}>{option}</span>
+          </button>
+        ))}
+      </div>
     </div>
-  </div>
   )
 }

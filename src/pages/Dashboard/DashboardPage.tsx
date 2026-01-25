@@ -15,7 +15,7 @@ import { FloatingActionButton } from '../../components/FloatingActionButton'
 import { AddTransactionModal } from '../../modals/AddTransaction'
 import { SettingsModal } from '../../modals/Settings'
 import { ReportsModal } from '../../modals/Reports'
-import { logoutSession } from '../../api/auth'
+import { logoutSession, getSession } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
 import type { Transaction } from '../../types'
@@ -24,13 +24,15 @@ import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
 import { faChartPie } from '@fortawesome/free-solid-svg-icons'
 import { SummaryModal } from '../../modals/SummaryModal'
+import { getCategories } from '../../api/categories'
+import { getSupportedCurrencies } from '../../api/currencies'
 
 
 const transactionKey = ['transactions']
 
 export const DashboardPage = () => {
   const navigate = useNavigate()
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, setAuth } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const queryClient = useQueryClient()
   const todayDate = dayjs().format('YYYY-MM-DD')
@@ -176,18 +178,50 @@ export const DashboardPage = () => {
         return transactionCategoryId === allFilters.categoryFilter
       })
 
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false)
+
+  const handleOpenSettings = async () => {
+    setIsSettingsLoading(true)
+    try {
+      const [sessionData] = await Promise.all([
+        getSession(),
+        queryClient.prefetchQuery({
+          queryKey: ['categories'],
+          queryFn: getCategories,
+          staleTime: 1000 * 60 * 5, // 5 minutes
+        }),
+        queryClient.prefetchQuery({
+          queryKey: ['currencies'],
+          queryFn: getSupportedCurrencies,
+          staleTime: 1000 * 60 * 60, // 1 hour
+        })
+      ])
+
+      if (sessionData && sessionData.user) {
+        setAuth({ user: sessionData.user, token: undefined })
+      }
+
+      setSettingsOpen(true)
+    } finally {
+      setIsSettingsLoading(false)
+    }
+  }
+
   return (
     <div
       data-theme={theme}
       className="relative flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--page-fg)]"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(52,152,219,0.12),_transparent_60%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(46,204,113,0.1),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-hero-grid opacity-[0.03]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-[var(--page-overlay-strong)] via-[var(--page-overlay-soft)] to-transparent" />
+      {/* Subtle modern accent blobs */}
+      <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-[#3498db]/5 blur-[120px]" />
+      <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-[#2ecc71]/5 blur-[120px]" />
       <AppNavbar
         variant="dashboard"
         theme={theme}
         onToggleTheme={toggleTheme}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={handleOpenSettings}
         onOpenReports={() => setReportsOpen(true)}
         onLogout={handleLogout}
         userName={displayName}
@@ -258,8 +292,8 @@ export const DashboardPage = () => {
       <Footer />
       {blockingModal}
       <BlockingModal
-        state={isTodayLoading || isAllLoading ? 'loading' : 'idle'}
-        message="Updating transactions..."
+        state={isTodayLoading || isAllLoading || isSettingsLoading ? 'loading' : 'idle'}
+        message={isSettingsLoading ? 'Loading settings...' : 'Updating transactions...'}
         onClose={() => { }}
       />
     </div>

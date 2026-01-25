@@ -80,29 +80,29 @@ export const SummaryModal = ({ open, onClose, transactions, currency = 'LKR', fi
             headerActions={customClose}
             showCloseButton={false}
         >
-            <div className="flex flex-col gap-8 pt-2 pb-2">
+            <div className="flex flex-col gap-8 p-1">
                 <div className="flex flex-col gap-6">
 
                     {/* Main Net Balance Card - Floating Effect */}
                     <div
-                        className={`group relative overflow-hidden rounded-[2.5rem] p-8 transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-none
+                        className={`group relative overflow-hidden rounded-[2.5rem] p-8 transition-all duration-500 shadow-sm
                             ${isNegative
-                                ? 'bg-rose-50/80 dark:bg-rose-500/[0.08]'
-                                : 'bg-emerald-50/80 dark:bg-emerald-500/[0.08]'
+                                ? 'bg-rose-50/50 dark:bg-rose-500/[0.1] border border-rose-200/50 dark:border-rose-500/20'
+                                : 'bg-emerald-50/50 dark:bg-emerald-500/[0.1] border border-emerald-200/50 dark:border-emerald-500/20'
                             }`}
                     >
                         <div className="relative flex flex-col gap-5">
                             <div className="flex items-center gap-3">
                                 <div className={`flex h-9 w-9 items-center justify-center rounded-2xl shadow-sm ring-1 ring-black/5
-                                    ${isNegative ? 'bg-rose-500/10 text-rose-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                                    ${isNegative ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                     <FontAwesomeIcon icon={faWallet} className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--muted-fg)] opacity-70">
+                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-70">
                                     Net Balance
                                 </span>
                             </div>
 
-                            <div className={`text-5xl font-black tracking-tighter transition-colors ${isNegative ? 'text-rose-500' : 'text-emerald-500'}`}>
+                            <div className={`text-5xl font-black tracking-tighter transition-colors ${isNegative ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                 <StyledAmount amount={balance} currency={currency} isNegative={isNegative} />
                             </div>
                         </div>
@@ -112,27 +112,27 @@ export const SummaryModal = ({ open, onClose, transactions, currency = 'LKR', fi
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                         {/* Income Box */}
-                        <div className="relative flex flex-col gap-4 rounded-[2.25rem] bg-white dark:bg-white/[0.03] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] ring-1 ring-black/[0.03] dark:ring-white/[0.05] transition-all hover:translate-y-[-4px]">
+                        <div className="relative flex flex-col gap-4 rounded-[2.25rem] bg-[var(--surface-glass)] dark:bg-[var(--surface-glass-thick)] p-6 shadow-sm ring-1 ring-[var(--border-glass)] transition-all hover:translate-y-[-4px]">
                             <div className="flex items-center gap-3">
                                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
                                     <FontAwesomeIcon icon={faArrowUp} className="h-3.5 w-3.5" />
                                 </div>
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-fg)] opacity-50">Income</span>
                             </div>
-                            <div className="text-2xl font-bold tracking-tight text-[var(--fg)] pl-1">
+                            <div className="text-2xl font-bold tracking-tight text-[var(--page-fg)] pl-1">
                                 <StyledAmount amount={income} currency={currency} mutedZero={true} />
                             </div>
                         </div>
 
                         {/* Expense Box */}
-                        <div className="relative flex flex-col gap-4 rounded-[2.25rem] bg-white dark:bg-white/[0.03] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] ring-1 ring-black/[0.03] dark:ring-white/[0.05] transition-all hover:translate-y-[-4px]">
+                        <div className="relative flex flex-col gap-4 rounded-[2.25rem] bg-[var(--surface-glass)] dark:bg-[var(--surface-glass-thick)] p-6 shadow-sm ring-1 ring-[var(--border-glass)] transition-all hover:translate-y-[-4px]">
                             <div className="flex items-center gap-3">
                                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
                                     <FontAwesomeIcon icon={faArrowDown} className="h-3.5 w-3.5" />
                                 </div>
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-fg)] opacity-50">Expense</span>
                             </div>
-                            <div className="text-2xl font-bold tracking-tight text-[var(--fg)] pl-1">
+                            <div className="text-2xl font-bold tracking-tight text-[var(--page-fg)] pl-1">
                                 <StyledAmount amount={expense} currency={currency} mutedZero={true} />
                             </div>
                         </div>

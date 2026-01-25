@@ -129,7 +129,7 @@ export const LandingPage = () => {
           <HeroSection onRegister={() => transitionToMode('register')} />
           <div className="hidden lg:block relative group">
             <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-tr from-[#3498db]/20 to-[#2ecc71]/20 opacity-0 blur-2xl transition duration-500 group-hover:opacity-100" />
-            <div className="relative rounded-[2.5rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-4 shadow-2xl backdrop-blur-2xl">
+            <div className="relative p-0">
               <DashboardPreview />
             </div>
           </div>
