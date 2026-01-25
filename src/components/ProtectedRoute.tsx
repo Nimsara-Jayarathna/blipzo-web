@@ -1,10 +1,9 @@
-import { type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { LoadingSpinner } from './LoadingSpinner'
+import { Spinner } from './Spinner'
 
 interface ProtectedRouteProps {
-  children: ReactNode
+  children: React.ReactNode
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
@@ -12,7 +11,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation()
 
   if (!isSessionChecked) {
-    return <LoadingSpinner />
+    return <Spinner size="lg" centered />
   }
 
   if (!isAuthenticated) {

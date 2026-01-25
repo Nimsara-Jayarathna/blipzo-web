@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
+import { BlockingModal } from '../../components/BlockingModal'
+
 import dayjs from 'dayjs'
-import { AppNavbar } from '../../components/AppNavbar'
+import { AppNavbar } from '../../layouts/AppNavbar'
 import { Footer } from '../../components/Footer'
 import { deleteTransaction, getTransactionsFiltered } from '../../api/transactions'
 import { TabNavigation } from '../../components/TabNavigation'
@@ -20,7 +22,9 @@ import type { Transaction } from '../../types'
 import type { TransactionFilters } from '../../api/transactions'
 import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
-import { mapApiError } from '../../utils/errors'
+import { faChartPie } from '@fortawesome/free-solid-svg-icons'
+import { SummaryModal } from '../../modals/SummaryModal'
+
 
 const transactionKey = ['transactions']
 
@@ -35,6 +39,7 @@ export const DashboardPage = () => {
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [isReportsOpen, setReportsOpen] = useState(false)
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
+  const [isSummaryOpen, setSummaryOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today')
   const [todayTransactions, setTodayTransactions] = useState<Transaction[]>([])
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
@@ -53,7 +58,6 @@ export const DashboardPage = () => {
   const {
     data: todayData,
     isLoading: isTodayLoading,
-    isError: isTodayError,
   } = useQuery({
     queryKey: [...transactionKey, 'today', todayDate],
     queryFn: () =>
@@ -67,7 +71,6 @@ export const DashboardPage = () => {
   const {
     data: allData,
     isLoading: isAllLoading,
-    isError: isAllError,
   } = useQuery({
     queryKey: [...transactionKey, 'all', { ...allFilters, categoryFilter: undefined }],
     queryFn: () =>
@@ -95,8 +98,12 @@ export const DashboardPage = () => {
     setAllTransactions(allData?.transactions ?? [])
   }, [allData])
 
-  const deleteTransactionMutation = useMutation({
-    mutationFn: async (transaction: Transaction) => {
+  const {
+    execute: executeDelete,
+    isLoading: isDeleting,
+    modal: blockingModal,
+  } = useBlockingAsync(
+    async (transaction: Transaction) => {
       const identifier = transaction._id ?? transaction.id
 
       if (!identifier) {
@@ -106,40 +113,38 @@ export const DashboardPage = () => {
       await deleteTransaction(identifier)
       return transaction
     },
-    onSuccess: deleted => {
-      setTodayTransactions(prev =>
-        prev.filter(
-          item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
-        ),
-      )
-      setAllTransactions(prev =>
-        prev.filter(
-          item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
-        ),
-      )
+    {
+      successMessage: 'Transaction deleted successfully!',
+      onSuccess: (deleted) => {
+        setTodayTransactions(prev =>
+          prev.filter(
+            item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
+          ),
+        )
+        setAllTransactions(prev =>
+          prev.filter(
+            item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
+          ),
+        )
 
-      const todayReference = dayjs()
-      if (dayjs(deleted.date).isSame(todayReference, 'day')) {
-        if (deleted.type === 'income') {
-          setTodayIncome(prev => prev - deleted.amount)
-          setTodayBalance(prev => prev - deleted.amount)
-        } else if (deleted.type === 'expense') {
-          setTodayExpense(prev => prev - deleted.amount)
-          setTodayBalance(prev => prev + deleted.amount)
+        const todayReference = dayjs()
+        if (dayjs(deleted.date).isSame(todayReference, 'day')) {
+          if (deleted.type === 'income') {
+            setTodayIncome(prev => prev - deleted.amount)
+            setTodayBalance(prev => prev - deleted.amount)
+          } else if (deleted.type === 'expense') {
+            setTodayExpense(prev => prev - deleted.amount)
+            setTodayBalance(prev => prev + deleted.amount)
+          }
         }
-      }
 
-      queryClient.invalidateQueries({ queryKey: transactionKey })
-      toast.success('Transaction deleted')
-    },
-    onError: error => {
-      const friendly = mapApiError(error)
-      toast.error(friendly.message)
-    },
-  })
+        queryClient.invalidateQueries({ queryKey: transactionKey })
+      },
+    }
+  )
 
   const handleDeleteTransaction = (transaction: Transaction) => {
-    deleteTransactionMutation.mutate(transaction)
+    executeDelete(transaction)
   }
 
   const handleTransactionCreated = (transaction: Transaction) => {
@@ -156,17 +161,20 @@ export const DashboardPage = () => {
   const handleLogout = () => {
     void logoutSession().catch(() => { })
     logout()
-    toast.success('Logged out')
+
     navigate('/', { replace: true })
   }
 
   const displayName = user?.name?.split(' ')[0] ?? user?.email ?? 'there'
 
-  useEffect(() => {
-    if (isTodayError || isAllError) {
-      toast.error('Unable to load dashboard data')
-    }
-  }, [isAllError, isTodayError])
+  const filteredAllTransactions =
+    allFilters.categoryFilter === 'all'
+      ? allTransactions
+      : allTransactions.filter(transaction => {
+        const transactionCategoryId =
+          transaction.categoryId ?? (typeof transaction.category === 'string' ? transaction.category : undefined)
+        return transactionCategoryId === allFilters.categoryFilter
+      })
 
   return (
     <div
@@ -200,31 +208,47 @@ export const DashboardPage = () => {
           {activeTab === 'today' ? (
             <TodayTransactionsPage
               transactions={todayTransactions}
-              isLoading={isTodayLoading}
+              // isLoading={isTodayLoading} // Handled by blocking modal
               income={todayIncome}
               expense={todayExpense}
               balance={todayBalance}
               onDeleteTransaction={handleDeleteTransaction}
-              isDeleting={deleteTransactionMutation.isPending}
+              isDeleting={isDeleting}
               currency={user?.currency?.code}
             />
           ) : (
             <AllTransactionsPage
-              transactions={allTransactions}
-              isLoading={isAllLoading}
+              transactions={filteredAllTransactions}
+              // isLoading={isAllLoading} // Handled by blocking modal
               filters={allFilters}
               onFiltersChange={setAllFilters}
               onDeleteTransaction={handleDeleteTransaction}
-              isDeleting={deleteTransactionMutation.isPending}
+              isDeleting={isDeleting}
               currency={user?.currency?.code}
             />
           )}
         </Widget>
       </main>
 
+      {activeTab === 'all' && (
+        <FloatingActionButton
+          onClick={() => setSummaryOpen(true)}
+          icon={faChartPie}
+          label="View Summary"
+          className="bottom-24 sm:bottom-28 bg-[var(--surface-glass)] text-[var(--fg)] hover:bg-[var(--surface-glass-thick)] border border-[var(--border-glass)]"
+        />
+      )}
+
       <FloatingActionButton onClick={() => setAddTransactionOpen(true)} />
 
       <SettingsModal open={isSettingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SummaryModal
+        open={isSummaryOpen}
+        onClose={() => setSummaryOpen(false)}
+        transactions={filteredAllTransactions}
+        currency={user?.currency?.code}
+        filters={allFilters}
+      />
       <ReportsModal open={isReportsOpen} onClose={() => setReportsOpen(false)} />
       <AddTransactionModal
         open={isAddTransactionOpen}
@@ -232,6 +256,12 @@ export const DashboardPage = () => {
         onTransactionCreated={handleTransactionCreated}
       />
       <Footer />
+      {blockingModal}
+      <BlockingModal
+        state={isTodayLoading || isAllLoading ? 'loading' : 'idle'}
+        message="Updating transactions..."
+        onClose={() => { }}
+      />
     </div>
   )
 }

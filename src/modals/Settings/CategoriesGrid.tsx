@@ -1,4 +1,4 @@
-import { LoadingSpinner } from '../../components/LoadingSpinner'
+
 import { Spinner } from '../../components/Spinner'
 import type { Category } from '../../types'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -29,7 +29,7 @@ export const CategoriesGrid = ({
   isSettingDefault,
 }: CategoriesGridProps) => {
   if (isLoading) {
-    return <LoadingSpinner />
+    return <Spinner size="lg" centered />
   }
 
   const grouped = [

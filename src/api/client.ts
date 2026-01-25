@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '../context/auth-store'
+import type { ApiError } from '../types/errors'
 
 const normalizeBaseUrl = (value: string) => value.replace(/\/+$/, '')
 
@@ -57,7 +58,13 @@ apiClient.interceptors.request.use(config => {
 })
 
 apiClient.interceptors.response.use(
-  response => response,
+  response => {
+    // Unwrap standard envelope if present
+    if (response.data && typeof response.data === 'object' && 'success' in response.data && response.data.data !== undefined) {
+      response.data = response.data.data
+    }
+    return response
+  },
   async error => {
     const status = error.response?.status as number | undefined
     const originalRequest = error.config as RetriableRequest | undefined
@@ -74,13 +81,55 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest)
       } catch (refreshError) {
         useAuthStore.getState().logout()
-        return Promise.reject(refreshError)
+        return Promise.reject(normalizeError(refreshError))
       }
     }
 
     if (status === 401 && !originalRequest?.url?.includes('/auth/password/change')) {
       useAuthStore.getState().logout()
     }
-    return Promise.reject(error)
+    return Promise.reject(normalizeError(error))
   },
 )
+
+interface CaughtError {
+  response?: {
+    data?: unknown
+    status?: number
+  }
+  code?: string
+  message?: string
+}
+
+interface ApiErrorContent {
+  code?: string
+  message?: string
+  details?: Record<string, string[]>
+}
+
+interface ApiResponse {
+  success?: boolean
+  error?: ApiErrorContent
+}
+
+const normalizeError = (error: unknown): ApiError => {
+  const typedError = error as CaughtError
+  const responseData = typedError.response?.data as ApiResponse | undefined
+  const status = typedError.response?.status
+
+  if (responseData && typeof responseData === 'object' && responseData.success === false && responseData.error) {
+    const errObj = responseData.error
+    return {
+      code: errObj.code || 'UNKNOWN_ERROR',
+      message: errObj.message || 'An error occurred',
+      details: errObj.details,
+      status,
+    }
+  }
+
+  return {
+    code: typedError.code || 'UNKNOWN_ERROR',
+    message: typedError.message || 'An unknown error occurred',
+    status,
+  }
+}

@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+
 import { passwordReset } from '../../api/auth'
 import { Spinner } from '../../components/Spinner'
 
@@ -16,17 +16,17 @@ export const ResetPassword = () => {
     const mutation = useMutation({
         mutationFn: ({ t, p }: { t: string; p: string }) => passwordReset(t, p),
         onSuccess: () => {
-            toast.success('Password reset successfully! Please login.')
+
             navigate('/')
         },
         onError: () => {
-            toast.error('Failed to reset password. Link may have expired.')
+
         },
     })
 
     useEffect(() => {
         if (!token) {
-            toast.error('Invalid password reset link.')
+
             navigate('/')
         }
     }, [token, navigate])
@@ -36,12 +36,12 @@ export const ResetPassword = () => {
         if (!token) return
 
         if (password.length < 6) {
-            toast.error('Password must be at least 6 characters long')
+
             return
         }
 
         if (password !== confirmPassword) {
-            toast.error('Passwords do not match')
+
             return
         }
 

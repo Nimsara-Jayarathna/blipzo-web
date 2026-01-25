@@ -1,14 +1,18 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+
+
 import { Modal } from '../../../components/Modal'
 import { Spinner } from '../../../components/Spinner'
+import { ConfirmationModal } from '../../../components/ConfirmationModal'
 import type { AuthMode } from '../../../types'
 import { registerInit, registerVerify, registerComplete, passwordForgot, passwordReset } from '../../../api/auth'
 import { useAuth } from '../../../hooks/useAuth'
+import { useBlockingAsync } from '../../../hooks/useBlockingAsync'
 import { useNavigate } from 'react-router-dom'
-import type { AxiosError } from 'axios'
+
+
+import { OtpInput } from '../../../components/OtpInput'
 
 interface AuthModalProps {
   open: boolean
@@ -50,126 +54,239 @@ export const AuthModal = ({
   const [registrationToken, setRegistrationToken] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  const [registerResendCountdown, setRegisterResendCountdown] = useState<number>(0)
+
   // Reset Password State
   const [resetConfirmPassword, setResetConfirmPassword] = useState('')
 
 
   // Mutations
-  const initMutation = useMutation({
-    mutationFn: registerInit,
-    onSuccess: (data: { message?: string }) => {
-      // Assuming success means we can move to OTP
-      toast.success(data.message || 'OTP sent to your email')
+  const {
+    execute: executeInit,
+    isLoading: isInitLoading,
+    modal: initModal,
+  } = useBlockingAsync(registerInit, {
+    successMessage: 'Verification code sent!',
+    onSuccess: () => {
       setStep('otp')
+      // Set resend timestamp in future (e.g., 60s)
+      const nextResend = Date.now() + 60000
+      localStorage.setItem(`auth_registration_next_resend_${formState.email}`, nextResend.toString())
+      setRegisterResendCountdown(60)
     },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Failed to send OTP'),
   })
 
-  const verifyMutation = useMutation({
-    mutationFn: ({ email, otp }: { email: string; otp: string }) => registerVerify(email, otp),
-    onSuccess: (data) => {
-      setRegistrationToken(data.registrationToken)
-      setStep('details')
-    },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Invalid OTP'),
-  })
+  const {
+    execute: executeVerify,
+    isLoading: isVerifyLoading,
+    modal: verifyModal,
+  } = useBlockingAsync(
+    async ({ email, otp }: { email: string; otp: string }) => registerVerify(email, otp),
+    {
+      successMessage: 'Email verified!',
+      onSuccess: (data) => {
+        setRegistrationToken(data.registrationToken)
+        setStep('details')
+      },
+    }
+  )
 
-  const completeMutation = useMutation({
-    mutationFn: (details: { fname: string; lname: string; password: string }) => registerComplete(registrationToken, details),
-    onSuccess: (data) => {
-      setAuth(data)
-      navigate('/dashboard')
-      onClose()
-    },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Registration failed'),
-  })
+  const {
+    execute: executeComplete,
+    isLoading: isCompleteLoading,
+    modal: completeModal,
+  } = useBlockingAsync(
+    async ({ token, details }: { token: string; details: { fname: string; lname: string; password: string } }) =>
+      registerComplete(token, details),
+    {
+      successMessage: 'Account created successfully!',
+      onSuccess: (data) => {
+        setAuth(data)
+        navigate('/dashboard')
+        resetInternalState() // Ensure clean exit
+        onClose()
+      },
+    }
+  )
+
 
   // --- Forgot Password Mutation ---
-  const forgotPasswordMutation = useMutation({
-    mutationFn: passwordForgot,
-    onSuccess: (data: { message?: string }) => {
-      if (data?.message === 'User not found') {
-        toast.error('This email is not registered with us.')
-      } else {
-        toast.success('Check your inbox for the reset link.')
-      }
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      if (err.response?.data?.message === 'User not found') {
-        toast.error('This email is not registered with us.')
-      } else {
-        toast.error('Failed to process request')
-      }
+  const {
+    execute: executeForgot,
+    isLoading: isForgotLoading,
+    modal: forgotModal,
+  } = useBlockingAsync(passwordForgot, {
+    successMessage: 'Reset link sent!',
+    onSuccess: () => {
+      // Stay on this screen or return to login? Usually stay to let them check email.
+      // Or we can switch to login for them to sign in after clicking link
     },
   })
 
   // --- Reset Password Mutation ---
-  const resetPasswordMutation = useMutation({
-    mutationFn: ({ token, password }: { token: string; password: string }) => passwordReset(token, password),
-    onSuccess: () => {
-      toast.success('Password reset successfully. Please log in.')
-      onModeChange('login')
-      navigate('/')
-    },
-    onError: (err: AxiosError<{ message?: string }>) => toast.error(err.response?.data?.message || 'Failed to reset password'),
-  })
+  const {
+    execute: executeReset,
+    isLoading: isResetLoading,
+    modal: resetModal,
+  } = useBlockingAsync(
+    async ({ token, password }: { token: string; password: string }) => passwordReset(token, password),
+    {
+      successMessage: 'Password reset successfully!',
+      onSuccess: () => {
+        onModeChange('login')
+        navigate('/')
+        resetInternalState()
+      },
+    }
+  )
 
 
   // Reset wizard on close or mode switch
-  const handleModeSwitch = (newMode: AuthMode) => {
+  const resetInternalState = () => {
     setStep('email')
     setOtp('')
     setRegistrationToken('')
     setConfirmPassword('')
     setResetConfirmPassword('')
+    setShowExitConfirm(false)
+    setRegisterResendCountdown(0)
+  }
+
+  const handleModeSwitch = (newMode: AuthMode) => {
+    resetInternalState()
     onModeChange(newMode)
+  }
+
+  // Reset state when modal closes (with delay for animation)
+  useEffect(() => {
+    if (!open) {
+      const timer = setTimeout(() => {
+        resetInternalState()
+      }, 300) // Match the AnimatePresence duration roughly
+      return () => clearTimeout(timer)
+    } else {
+      // On Open or active: check timer if in OTP step
+      if (activeMode === 'register' && step === 'otp') {
+        const storedTime = localStorage.getItem(`auth_registration_next_resend_${formState.email}`)
+        if (storedTime) {
+          const expiresAt = parseInt(storedTime, 10)
+          const timeLeft = Math.ceil((expiresAt - Date.now()) / 1000)
+          if (timeLeft > 0) {
+            setRegisterResendCountdown(timeLeft)
+          } else {
+            setRegisterResendCountdown(0)
+          }
+        }
+      }
+    }
+  }, [open, activeMode, step, formState.email])
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (registerResendCountdown > 0) {
+      const timer = setInterval(() => {
+        setRegisterResendCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [registerResendCountdown])
+
+  const handleAttemptClose = () => {
+    // If in registration mode and progress has been made (OTP or Details step)
+    if (activeMode === 'register' && (step === 'otp' || step === 'details')) {
+      setShowExitConfirm(true)
+    } else {
+      onClose()
+    }
+  }
+
+  const handleConfirmExit = () => {
+    setShowExitConfirm(false)
+    onClose() // Actually close
+    // Optional: Reset step effectively happens on next open due to component unmount or we can force it here
+  }
+
+  const handleResendOtp = async () => {
+    if (activeMode === 'register' && step === 'otp' && registerResendCountdown === 0) {
+      // Re-trigger init
+      await executeInit(formState.email)
+    }
   }
 
   const handleRegisterSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (step === 'email') {
-      initMutation.mutate(formState.email)
+      executeInit(formState.email)
     } else if (step === 'otp') {
-      verifyMutation.mutate({ email: formState.email, otp })
+      executeVerify({ email: formState.email, otp })
     } else if (step === 'details') {
       if (formState.password !== confirmPassword) {
-        toast.error('Passwords do not match')
+        // Simple alert for mismatched passwords (non-blocking)
+        alert("Passwords do not match!")
         return
       }
-      completeMutation.mutate({
-        fname: formState.firstName,
-        lname: formState.lastName,
-        password: formState.password,
+      executeComplete({
+        token: registrationToken,
+        details: {
+          fname: formState.firstName,
+          lname: formState.lastName,
+          password: formState.password,
+        }
       })
     }
   }
 
   const handleForgotSubmit = (e: FormEvent) => {
     e.preventDefault()
-    forgotPasswordMutation.mutate(formState.email)
+    executeForgot(formState.email)
   }
 
   const handleResetSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (formState.password !== resetConfirmPassword) {
-      toast.error('Passwords do not match')
+      // Logic for mismatch if needed, currently just return
       return
     }
     if (resetToken) {
-      resetPasswordMutation.mutate({ token: resetToken, password: formState.password })
+      executeReset({ token: resetToken, password: formState.password })
     }
   }
 
-  const isLoading = parentLoading || initMutation.isPending || verifyMutation.isPending || completeMutation.isPending
+  const isLoading = parentLoading || isInitLoading || isVerifyLoading || isCompleteLoading || isForgotLoading || isResetLoading
 
   const isLogin = activeMode === 'login'
 
   return (
     <AnimatePresence>
+      {initModal}
+      {verifyModal}
+      {completeModal}
+      {forgotModal}
+      {resetModal}
+
+      <ConfirmationModal
+        open={showExitConfirm}
+        title="Exit Registration?"
+        message="Registration is incomplete. Any progress will be lost if you exit now."
+        type="warning"
+        confirmText="Exit & Discard"
+        cancelText="Stay"
+        onConfirm={handleConfirmExit}
+        onCancel={() => setShowExitConfirm(false)}
+      />
+
       {open && (
         <Modal
           open={open}
-          onClose={onClose}
+          onClose={handleAttemptClose}
           title={
             activeMode === 'login'
               ? 'Welcome back'
@@ -280,15 +397,30 @@ export const AuthModal = ({
                     <p className="mb-4 text-center text-sm text-[var(--text-muted)]">
                       Enter the code sent to <strong>{formState.email}</strong>
                     </p>
-                    <input
-                      type="text"
-                      placeholder="6-digit Code"
-                      required
-                      maxLength={6}
-                      className="w-full rounded-2xl border border-[var(--input-border)] bg-[var(--input-bg)] px-5 py-3.5 text-center text-lg tracking-[0.5em] text-[var(--page-fg)] placeholder:tracking-normal placeholder:text-[var(--text-muted)] outline-none transition focus:border-[#3498db]/30 focus:ring-4 focus:ring-[#3498db]/5"
+                    <OtpInput
                       value={otp}
-                      onChange={event => setOtp(event.target.value.replace(/\D/g, ''))}
+                      onChange={setOtp}
+                      disabled={isVerifyLoading}
                     />
+
+                    <div className="mt-4 flex items-center justify-between text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setStep('email')}
+                        className="text-[var(--text-subtle)] hover:text-[var(--page-fg)] hover:underline"
+                      >
+                        Change email
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={registerResendCountdown > 0 || isInitLoading}
+                        onClick={handleResendOtp}
+                        className={`font-medium ${registerResendCountdown > 0 ? 'text-[var(--text-muted)] cursor-wait' : 'text-[#3498db] hover:underline'}`}
+                      >
+                        {registerResendCountdown > 0 ? `Resend in ${registerResendCountdown}s` : 'Resend Code'}
+                      </button>
+                    </div>
                   </div>
                 )}
 
