@@ -1,6 +1,6 @@
-import type { Transaction } from '../types'
-import { formatCurrency, formatDate } from '../utils/format'
-import { isToday } from '../utils/date'
+import type { Transaction } from '../../../types'
+import { formatCurrency, formatDate } from '../../../utils/format'
+import { isToday } from '../../../utils/date'
 
 interface TransactionListProps {
   transactions: Transaction[]
@@ -38,11 +38,10 @@ export const TransactionList = ({
             >
               <div className="flex items-center gap-4">
                 <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold ${
-                    isIncome
+                  className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold ${isIncome
                       ? 'border-income/40 bg-income/15 text-income'
                       : 'border-expense/40 bg-expense/15 text-expense'
-                  }`}
+                    }`}
                 >
                   {isIncome ? 'In' : 'Out'}
                 </span>

@@ -1,5 +1,5 @@
 import type { Transaction } from '../../../../../types'
-import { LoadingSpinner } from '../../../../../components/LoadingSpinner'
+import { Spinner } from '../../../../../components/Spinner'
 import { TodaySummaryCards } from '../TodaySummaryCards'
 import { TodayTransactionsTable } from '../TodayTransactionsTable'
 import { EmptyState } from '../../ui/EmptyState'
@@ -38,7 +38,7 @@ export const TodayActivitySection = ({
         </div>
 
         {isLoading ? (
-          <LoadingSpinner />
+          <Spinner size="lg" centered />
         ) : transactions && transactions.length ? (
           <TodayTransactionsTable
             transactions={transactions}

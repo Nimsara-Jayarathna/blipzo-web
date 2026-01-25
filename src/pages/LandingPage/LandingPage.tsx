@@ -1,12 +1,12 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
-import toast from 'react-hot-toast'
+
 import { login, register } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 import { useTheme } from '../../hooks/useTheme'
 import type { AuthMode } from '../../types'
-import { AppNavbar } from '../../components/AppNavbar'
+import { AppNavbar } from '../../layouts/AppNavbar'
 import { Footer } from '../../components/Footer'
 import { AuthModal } from './components/AuthModal'
 import { DashboardPreview } from './components/DashboardPreview'
@@ -26,23 +26,29 @@ export const LandingPage = () => {
 
   const [formState, setFormState] = useState({ firstName: '', lastName: '', email: '', password: '' })
 
-  const loginMutation = useMutation({
-    mutationFn: login,
+
+  const {
+    execute: executeLogin,
+    isLoading: isLoginLoading,
+    modal: loginModal,
+  } = useBlockingAsync(login, {
+    successMessage: 'Welcome back!',
     onSuccess: data => {
       setAuth(data)
       navigate('/dashboard')
     },
-    onError: () => toast.error('Invalid credentials'),
   })
 
-  // Basic register mutation (legacy, but keeping generic structure for now)
-  const registerMutation = useMutation({
-    mutationFn: register,
+  const {
+    execute: executeRegister,
+    isLoading: isRegisterLoading,
+    modal: registerModal,
+  } = useBlockingAsync(register, {
+    successMessage: 'Account created successfully!',
     onSuccess: data => {
       setAuth(data)
       navigate('/dashboard')
     },
-    onError: () => toast.error('Unable to create account'),
   })
 
   useEffect(() => {
@@ -59,7 +65,7 @@ export const LandingPage = () => {
         setResetToken(token)
         setMode('reset-password')
       } else {
-        toast.error('Invalid reset link')
+
         navigate('/')
       }
     } else if (location.pathname === '/forgot-password') {
@@ -70,8 +76,6 @@ export const LandingPage = () => {
 
   const transitionToMode = (nextMode: AuthMode) => {
     setMode(nextMode)
-    loginMutation.reset()
-    registerMutation.reset()
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -79,10 +83,10 @@ export const LandingPage = () => {
     if (!mode) return
 
     if (mode === 'login') {
-      loginMutation.mutate({ email: formState.email, password: formState.password })
+      executeLogin({ email: formState.email, password: formState.password })
     } else if (mode === 'register') {
       // Logic handled inside AuthModal for multi-step now, but keeping safe fallback
-      registerMutation.mutate({
+      executeRegister({
         email: formState.email,
         password: formState.password,
         fname: formState.firstName,
@@ -96,13 +100,15 @@ export const LandingPage = () => {
   }
 
   const isModalOpen = mode !== null
-  const isLoading = loginMutation.isPending || registerMutation.isPending
+  const isLoading = isLoginLoading || isRegisterLoading
 
   return (
     <main
       data-theme={theme}
       className="relative min-h-screen w-full overflow-x-hidden bg-[var(--page-bg)] text-[var(--page-fg)]"
     >
+      {loginModal}
+      {registerModal}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute inset-0 bg-hero-grid opacity-[0.03]" />
         <div className="absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-[var(--page-overlay-strong)] via-[var(--page-overlay-soft)] to-transparent" />

@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode } from 'react'
+import { useScrollLock } from '../hooks/useScrollLock'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface ModalProps {
@@ -11,6 +12,7 @@ interface ModalProps {
   headerActions?: ReactNode
   widthClassName?: string
   zIndex?: string
+  showCloseButton?: boolean
 }
 
 export const Modal = ({
@@ -23,17 +25,9 @@ export const Modal = ({
   headerActions,
   widthClassName = 'max-w-lg',
   zIndex = 'z-50',
+  showCloseButton = true,
 }: ModalProps) => {
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
+  useScrollLock(open)
 
   return (
     <AnimatePresence>
@@ -65,13 +59,15 @@ export const Modal = ({
             <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
             <div className="absolute right-6 top-6 flex items-center gap-2">
               {headerActions}
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
-              >
-                Close
-              </button>
+              {showCloseButton ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
+                >
+                  Close
+                </button>
+              ) : null}
             </div>
             <div className="flex flex-col gap-5">
               {title ? (
@@ -80,7 +76,7 @@ export const Modal = ({
                   {subtitle ? <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p> : null}
                 </div>
               ) : null}
-              <div className="max-h-[65vh] overflow-y-auto pr-2">
+              <div className="max-h-[65vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
                 {children}
               </div>
               {footer ? <div className="border-t border-[var(--border-glass)] pt-4">{footer}</div> : null}

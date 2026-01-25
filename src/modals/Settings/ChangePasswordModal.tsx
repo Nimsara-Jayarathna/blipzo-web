@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import type { AxiosError } from 'axios'
-import toast from 'react-hot-toast'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
+
+
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
 import { changePassword } from '../../api/auth'
@@ -16,23 +16,27 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
 
-    const passwordMutation = useMutation({
-        mutationFn: () => changePassword(currentPassword, newPassword),
-        onSuccess: () => {
-            toast.success('Password changed successfully')
-            onClose()
-            // Reset state
-            setCurrentPassword('')
-            setNewPassword('')
-            setConfirmPassword('')
-        },
-        onError: (err: AxiosError<{ message: string }>) => toast.error(err.response?.data?.message || 'Failed to change password'),
-    })
+    const {
+        execute: executeChange,
+        isLoading: isSubmitting,
+        modal: blockingModal,
+    } = useBlockingAsync(
+        () => changePassword(currentPassword, newPassword),
+        {
+            successMessage: 'Password updated successfully!',
+            onSuccess: () => {
+                onClose()
+                setCurrentPassword('')
+                setNewPassword('')
+                setConfirmPassword('')
+            },
+        }
+    )
 
     const handleSubmit = () => {
-        if (newPassword.length < 6) return toast.error('Password too short')
-        if (newPassword !== confirmPassword) return toast.error('Passwords do not match')
-        passwordMutation.mutate()
+        if (newPassword.length < 6) return
+        if (newPassword !== confirmPassword) return
+        executeChange()
     }
 
     return (
@@ -73,19 +77,15 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
                 <div className="flex gap-4 pt-4">
                     <button
                         onClick={handleSubmit}
-                        disabled={passwordMutation.isPending}
+                        disabled={isSubmitting}
                         className="flex-1 rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                     >
-                        {passwordMutation.isPending ? <Spinner size="sm" /> : 'Update Password'}
+                        {isSubmitting ? <Spinner size="sm" /> : 'Update Password'}
                     </button>
-                    <button
-                        onClick={onClose}
-                        className="rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                    >
-                        Cancel
-                    </button>
+
                 </div>
             </div>
+            {blockingModal}
         </Modal>
     )
 }

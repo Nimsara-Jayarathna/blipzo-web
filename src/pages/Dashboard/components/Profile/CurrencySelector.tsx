@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSupportedCurrencies, updateUserCurrency } from '../../../../api/currencies'
 import { useAuth } from '../../../../hooks/useAuth'
-import { LoadingSpinner } from '../../../../components/LoadingSpinner'
-import toast from 'react-hot-toast'
+import { Spinner } from '../../../../components/Spinner'
+import { useBlockingAsync } from '../../../../hooks/useBlockingAsync'
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { Currency } from '../../../../types'
 
 export const CurrencySelector = () => {
@@ -19,8 +20,12 @@ export const CurrencySelector = () => {
     staleTime: 1000 * 60 * 60, // 1 hour
   })
 
-  const updateCurrencyMutation = useMutation({
-    mutationFn: updateUserCurrency,
+  const {
+    execute: executeUpdate,
+    isLoading: isUpdating,
+    modal: blockingModal,
+  } = useBlockingAsync(updateUserCurrency, {
+    successMessage: 'Currency updated successfully!',
     onSuccess: (data) => {
       if (user) {
         // Update local auth state immediately
@@ -32,12 +37,11 @@ export const CurrencySelector = () => {
         })
       }
       queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
-      queryClient.invalidateQueries({ queryKey: ['transactions'] }) // Invalidate to re-render with new currency if needed
-      toast.success('Currency updated successfully')
+
+
       setPendingCurrency(null)
     },
     onError: () => {
-      toast.error('Failed to update currency')
       setPendingCurrency(null)
     },
   })
@@ -45,13 +49,13 @@ export const CurrencySelector = () => {
   const handleSelect = (currency: Currency) => {
     if (user?.currency?._id === currency._id) return
     setPendingCurrency(currency._id)
-    updateCurrencyMutation.mutate(currency._id)
+    executeUpdate(currency._id)
   }
 
   if (isLoading) {
     return (
       <div className="flex justify-center p-8">
-        <LoadingSpinner />
+        <Spinner size="lg" className="border-t-accent" />
       </div>
     )
   }
@@ -74,7 +78,7 @@ export const CurrencySelector = () => {
             <button
               key={currency._id}
               onClick={() => handleSelect(currency)}
-              disabled={updateCurrencyMutation.isPending}
+              disabled={isUpdating}
               className={`
                 group relative flex items-center justify-between rounded-xl border p-4 transition-all
                 ${isSelected
@@ -90,7 +94,7 @@ export const CurrencySelector = () => {
                     }`}
                 >
                   {isPending ? (
-                    <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                    <Spinner size="sm" />
                   ) : (
                     currency.symbol
                   )}
@@ -112,6 +116,7 @@ export const CurrencySelector = () => {
           )
         })}
       </div>
+      {blockingModal}
     </div>
   )
 }

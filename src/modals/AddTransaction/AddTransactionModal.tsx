@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { useQueryClient } from '@tanstack/react-query'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
+
 import dayjs from 'dayjs'
 import { Modal } from '../../components/Modal'
 import { createTransaction } from '../../api/transactions'
@@ -8,6 +9,7 @@ import type { Transaction } from '../../types'
 import { getCategories } from '../../api/categories'
 import { StepOne } from './step1/StepOne'
 import { StepTwo } from './step2/StepTwo'
+import { useAuth } from '../../hooks/useAuth'
 
 interface AddTransactionModalProps {
   open: boolean
@@ -28,6 +30,8 @@ type CategoryOption = {
 
 export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: AddTransactionModalProps) => {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const currencySymbol = user?.currency?.symbol || '$'
 
   const [amount, setAmount] = useState('')
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense')
@@ -37,7 +41,6 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
   const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'))
   const [note, setNote] = useState('')
   const [step, setStep] = useState<AddTransactionStep>(1)
-  const [isLoadingCategories, setIsLoadingCategories] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -50,29 +53,21 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
     }
   }, [open])
 
-  useEffect(() => {
-    if (step !== 2) return
-
-    const loadCategories = async () => {
-      try {
-        setIsLoadingCategories(true)
-        const result = await getCategories()
-        const mapped: CategoryOption[] = (result.categories ?? []).map(item => ({
-          id: item.id ?? item._id ?? item.name,
-          name: item.name,
-          type: item.type,
-          isDefault: item.isDefault,
-        }))
-        setCategories(mapped)
-      } catch {
-        toast.error('Unable to load categories')
-      } finally {
-        setIsLoadingCategories(false)
-      }
-    }
-
-    void loadCategories()
-  }, [step])
+  /* REPLACE passive fetching with blocking action */
+  const {
+    execute: executeLoadCategories,
+    modal: loadCategoriesModal,
+  } = useBlockingAsync(getCategories, {
+     loadingMessage: 'Loading active categories...',
+     // No success message needed for internal data loading, or maybe a subtle one?  
+     // Usually better to be silent on success for "migrations" like this, but 
+     // the hook might default to "Operation successful" if not specified?
+     // Let's check useBlockingAsync implementation. 
+     // It says: setMessage(options.successMessage || 'Operation successful')
+     // defaulting to that might be annoying.
+     // However, we want to transition immediately.
+     successDuration: 0, // Instant transition
+  })
 
   useEffect(() => {
     if (!categories.length) {
@@ -93,33 +88,34 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
     setSelectedCategory(defaultForType?.id ?? nextFiltered[0]?.id ?? '')
   }, [categories, transactionType])
 
-  const mutation = useMutation({
-    mutationFn: createTransaction,
-    onSuccess: transaction => {
-      toast.success('Transaction added')
+  const {
+    execute: executeCreate,
+    isLoading: isCreating,
+    modal: blockingModal,
+  } = useBlockingAsync(createTransaction, {
+    successMessage: 'Transaction added successfully!',
+    onSuccess: (transaction) => {
       queryClient.invalidateQueries({ queryKey: transactionKey })
       queryClient.invalidateQueries({ queryKey: summaryKey })
       onTransactionCreated?.(transaction)
       setAmount('')
       setNote('')
+      setStep(1) // Reset to step 1
       onClose()
     },
-    onError: () => toast.error('Unable to add transaction'),
   })
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const numericAmount = Number(amount)
     if (!numericAmount || Number.isNaN(numericAmount)) {
-      toast.error('Please enter a valid amount')
       return
     }
     if (!selectedCategory) {
-      toast.error('Select a category')
       return
     }
 
-    mutation.mutate({
+    executeCreate({
       amount: numericAmount,
       type: transactionType,
       category: selectedCategory,
@@ -128,14 +124,28 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
     })
   }
 
-  const handleSelectTypeAndContinue = (selectedType: 'income' | 'expense') => {
+  const handleSelectTypeAndContinue = async (selectedType: 'income' | 'expense') => {
     const numericAmount = Number(amount)
     if (!numericAmount || Number.isNaN(numericAmount) || numericAmount <= 0) {
-      toast.error('Enter a valid amount first')
       return
     }
+
     setTransactionType(selectedType)
-    setStep(2)
+
+    // Blocking fetch
+    const result = await executeLoadCategories()
+    
+    // logic continues if result is present (success)
+    if (result) {
+        const mapped: CategoryOption[] = (result.categories ?? []).map(item => ({
+          id: item.id ?? item._id ?? item.name,
+          name: item.name,
+          type: item.type,
+          isDefault: item.isDefault,
+        }))
+        setCategories(mapped)
+        setStep(2)
+    }
   }
 
   const handleBackToStepOne = () => {
@@ -143,35 +153,45 @@ export const AddTransactionModal = ({ open, onClose, onTransactionCreated }: Add
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Add Transaction"
-      subtitle="Quickly log income or expenses in two simple steps."
-      widthClassName={step === 1 ? 'max-w-md' : 'max-w-xl'}
-    >
-      {step === 1 ? (
-        <StepOne amount={amount} onChangeAmount={setAmount} onSelectType={handleSelectTypeAndContinue} />
-      ) : (
-        <StepTwo
-          amount={amount}
-          transactionType={transactionType}
-          date={date}
-          note={note}
-          categories={categories}
-          filteredCategories={filteredCategories}
-          selectedCategory={selectedCategory}
-          isLoadingCategories={isLoadingCategories}
-          isSubmitting={mutation.isPending}
-          onBack={handleBackToStepOne}
-          onSubmit={handleSubmit}
-          onChangeType={setTransactionType}
-          onChangeDate={setDate}
-          onChangeNote={setNote}
-          onSelectCategory={setSelectedCategory}
-        />
-      )}
-    </Modal>
+    <>
+      {blockingModal}
+      {loadCategoriesModal}
+      <Modal
+        open={open}
+        onClose={onClose}
+        title="Add Transaction"
+        subtitle="Quickly log income or expenses in two simple steps."
+        widthClassName={step === 1 ? 'max-w-md' : 'max-w-xl'}
+      >
+        {step === 1 ? (
+          <StepOne
+            amount={amount}
+            onChangeAmount={setAmount}
+            onSelectType={handleSelectTypeAndContinue}
+            currencySymbol={currencySymbol}
+          />
+        ) : (
+          <StepTwo
+            amount={amount}
+            transactionType={transactionType}
+            date={date}
+            note={note}
+            categories={categories}
+            filteredCategories={filteredCategories}
+            selectedCategory={selectedCategory}
+            isLoadingCategories={false}
+            isSubmitting={isCreating}
+            onBack={handleBackToStepOne}
+            onSubmit={handleSubmit}
+            onChangeType={setTransactionType}
+            onChangeDate={setDate}
+            onChangeNote={setNote}
+            onSelectCategory={setSelectedCategory}
+            currencySymbol={currencySymbol}
+          />
+        )}
+      </Modal>
+    </>
   )
 }
 

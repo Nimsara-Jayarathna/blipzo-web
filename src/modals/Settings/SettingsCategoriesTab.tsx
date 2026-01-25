@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import { IconSpinner } from '../../components/IconSpinner'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
+
+import { Spinner } from '../../components/Spinner'
 import { getCategories, deleteCategory, setDefaultCategory } from '../../api/categories'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import { mapApiError } from '../../utils/errors'
@@ -51,20 +52,26 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
         [categories],
     )
 
-    const deleteMutation = useMutation({
-        mutationFn: (id: string) => deleteCategory(id),
+    const {
+        execute: executeDelete,
+        isLoading: isDeleting,
+        modal: deleteModal,
+    } = useBlockingAsync((id: string) => deleteCategory(id), {
+        successMessage: 'Category deleted!',
         onSuccess: () => {
-            toast.success('Category removed')
             queryClient.invalidateQueries({ queryKey: categoryKey })
             setUiError(null)
         },
         onError: error => setUiError(mapApiError(error)),
     })
 
-    const setDefaultMutation = useMutation({
-        mutationFn: (categoryId: string) => setDefaultCategory(categoryId),
+    const {
+        execute: executeSetDefault,
+        isLoading: isSettingDefault,
+        modal: defaultModal,
+    } = useBlockingAsync((categoryId: string) => setDefaultCategory(categoryId), {
+        successMessage: 'Default category updated!',
         onSuccess: () => {
-            toast.success('Default category updated')
             queryClient.invalidateQueries({ queryKey: categoryKey })
             queryClient.invalidateQueries({ queryKey: ['transactions'] })
             setUiError(null)
@@ -96,22 +103,22 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
             if (categoryId === defaultExpenseId) return
             setDefaultExpenseId(categoryId)
         }
-        setDefaultMutation.mutate(categoryId)
+        executeSetDefault(categoryId)
     }
 
     const handleDelete = (category: Category) => {
         const identifier = resolveCategoryId(category)
         if (!identifier) {
-            toast.error('Unable to delete category: missing identifier')
+
             return
         }
-        deleteMutation.mutate(identifier)
+        executeDelete(identifier)
     }
 
     const handleSetDefault = (category: Category) => {
         const identifier = resolveCategoryId(category)
         if (!identifier) {
-            toast.error('Unable to set default: missing identifier')
+
             return
         }
         handleDefaultSelect(identifier, category.type)
@@ -151,19 +158,20 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                         isLoading={isLoading}
                         categories={categories}
                         limit={categoriesLimit}
-                        deleteMutation={deleteMutation}
+                        deleteMutation={{ isPending: isDeleting, variables: undefined }}
                         resolveCategoryId={resolveCategoryId}
                         onDelete={handleDelete}
                         onSetDefault={handleSetDefault}
-                        isSettingDefault={setDefaultMutation.isPending}
+                        isSettingDefault={isSettingDefault}
                     />
                 </div>
             </div>
 
-            {(isLoading || isFetching || deleteMutation.isPending || setDefaultMutation.isPending) && (
+            {/* Loading Overlay for Fetching Only */}
+            {(isLoading || isFetching) && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--surface-glass)] backdrop-blur-sm">
                     <div className="flex flex-col items-center gap-3">
-                        <IconSpinner className="text-4xl text-accent" />
+                        <Spinner size="lg" className="text-accent" />
                         <p className="text-xs font-medium text-[var(--text-muted)]">Updating categories...</p>
                     </div>
                 </div>
@@ -175,6 +183,8 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                 categories={categories}
                 limit={categoriesLimit}
             />
+            {deleteModal}
+            {defaultModal}
         </div>
     )
 }
