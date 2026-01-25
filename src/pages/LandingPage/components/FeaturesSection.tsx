@@ -8,12 +8,12 @@ const features = [
 
 export const FeaturesSection = () => {
   return (
-    <div className="mt-40 grid gap-8 md:grid-cols-3">
+    <div className="mt-32 grid gap-8 md:grid-cols-3">
       {features.map((feature, i) => (
         <motion.div
           key={feature.title}
           whileHover={{ y: -8 }}
-          className="rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-10 shadow-soft backdrop-blur-xl transition-shadow hover:shadow-card"
+          className="rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-8 shadow-soft backdrop-blur-xl transition-shadow hover:shadow-card"
         >
           <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#3498db]/10 text-[#3498db] font-black">
             0{i + 1}
