@@ -33,9 +33,13 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
         }
     )
 
+    const isFormValid =
+        currentPassword.length > 0 &&
+        newPassword.length >= 6 &&
+        newPassword === confirmPassword
+
     const handleSubmit = () => {
-        if (newPassword.length < 6) return
-        if (newPassword !== confirmPassword) return
+        if (!isFormValid) return
         executeChange()
     }
 
@@ -74,15 +78,26 @@ export const ChangePasswordModal = ({ open, onClose }: ChangePasswordModalProps)
                     />
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-4 pt-4 flex-col">
                     <button
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className="flex-1 rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+                        disabled={isSubmitting || !isFormValid}
+                        className="w-full rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
                     >
                         {isSubmitting ? <Spinner size="sm" /> : 'Update Password'}
                     </button>
 
+                    {!isFormValid && (
+                        <div className="text-center text-xs text-rose-500/80 font-medium px-4">
+                            {!currentPassword ? (
+                                "Please enter your current password."
+                            ) : newPassword.length < 6 ? (
+                                "New password must be at least 6 characters."
+                            ) : newPassword !== confirmPassword ? (
+                                "Passwords do not match."
+                            ) : null}
+                        </div>
+                    )}
                 </div>
             </div>
             {blockingModal}

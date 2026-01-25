@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useBlockingAsync } from '../../hooks/useBlockingAsync'
-
 
 import { Modal } from '../../components/Modal'
 import { Spinner } from '../../components/Spinner'
@@ -22,8 +21,7 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
     const [otp, setOtp] = useState('')
     const [newEmail, setNewEmail] = useState('')
     const [changeToken, setChangeToken] = useState('')
-
-
+    const lastSubmittedOtp = useRef('')
 
     const initMutation = useMutation({
         mutationFn: emailChangeInit,
@@ -34,24 +32,27 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
         onError: () => onClose(),
     })
 
-    const {
-        execute: verifyCurrent,
-        isLoading: isVerifyingCurrent,
-        modal: verifyCurrentModal,
-    } = useBlockingAsync(emailChangeVerifyCurrent, {
+    const verifyCurrentOptions = useMemo(() => ({
         successMessage: 'Current email verified!',
-        onSuccess: (data) => {
+        onSuccess: (data: { changeToken: string }) => {
             setChangeToken(data.changeToken)
             setStep('enter-new')
             setOtp('')
         },
-    })
+        onError: () => {
+            setOtp('')
+            lastSubmittedOtp.current = ''
+        }
+    }), [])
 
-    const requestNewMutation = useMutation({
-        mutationFn: () => emailChangeRequestNew(changeToken, newEmail),
-        onMutate: () => {
-            setStep('sending-new')
-        },
+    const {
+        execute: verifyCurrent,
+        isLoading: isVerifyingCurrent,
+        modal: verifyCurrentModal,
+    } = useBlockingAsync(emailChangeVerifyCurrent, verifyCurrentOptions)
+
+    const requestNewOptions = useMemo(() => ({
+        successMessage: 'Verification code sent!',
         onSuccess: () => {
             setStep('verify-new')
             setOtp('')
@@ -59,21 +60,42 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
         onError: () => {
             setStep('enter-new')
         }
-    })
+    }), [])
 
     const {
-        execute: confirmNew,
-        isLoading: isConfirming,
-        modal: confirmModal,
-    } = useBlockingAsync(emailChangeConfirm, {
+        execute: requestNew,
+        isLoading: isRequestingNew,
+        modal: requestNewModal,
+    } = useBlockingAsync(
+        () => emailChangeRequestNew(changeToken, newEmail),
+        requestNewOptions
+    )
+
+    const confirmNewOptions = useMemo(() => ({
         successMessage: 'New email address updated!',
-        onSuccess: (data) => {
+        onSuccess: (data: { email: string }) => {
             if (user) {
                 setAuth({ user: { ...user, email: data.email } })
             }
             onClose()
         },
-    })
+        onError: () => {
+            setOtp('')
+            lastSubmittedOtp.current = ''
+        }
+    }), [user, setAuth, onClose])
+
+    const {
+        execute: confirmNew,
+        isLoading: isConfirming,
+        modal: confirmModal,
+    } = useBlockingAsync(emailChangeConfirm, confirmNewOptions)
+
+    const isGlobalLoading =
+        initMutation.isPending ||
+        isVerifyingCurrent ||
+        isRequestingNew ||
+        isConfirming
 
     // Reset state when opening
     useEffect(() => {
@@ -82,30 +104,36 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             setOtp('')
             setNewEmail('')
             setChangeToken('')
+            lastSubmittedOtp.current = ''
             // Auto-start the process when opened
             initMutation.mutate()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
 
+    // Auto-submit OTP
+    useEffect(() => {
+        if (otp.length === 6 && !isGlobalLoading && otp !== lastSubmittedOtp.current) {
+            lastSubmittedOtp.current = otp
+            if (step === 'verify-current') {
+                verifyCurrent(otp)
+            } else if (step === 'verify-new') {
+                confirmNew(otp)
+            }
+        }
+    }, [otp, step, isGlobalLoading, verifyCurrent, confirmNew])
+
+    // Email validation
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)
+
     const handleAction = () => {
         if (step === 'idle') {
             initMutation.mutate()
-        } else if (step === 'verify-current') {
-            verifyCurrent(otp)
         } else if (step === 'enter-new') {
-            if (!newEmail) return
-            requestNewMutation.mutate()
-        } else if (step === 'verify-new') {
-            confirmNew(otp)
+            if (!isEmailValid) return
+            requestNew()
         }
     }
-
-    const isLoading =
-        initMutation.isPending ||
-        isVerifyingCurrent ||
-        requestNewMutation.isPending ||
-        isConfirming
 
     const getTitle = () => {
         switch (step) {
@@ -126,11 +154,11 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
             widthClassName="max-w-md"
         >
             <div className="py-2">
-                {(step === 'idle' || step === 'sending-new') && (
+                {step === 'idle' && (
                     <div className="flex flex-col items-center justify-center py-8">
                         <Spinner size="lg" />
                         <p className="mt-4 text-[var(--text-muted)]">
-                            {step === 'idle' ? 'Preparing security verification...' : 'Sending verification to new email...'}
+                            Preparing security verification...
                         </p>
                     </div>
                 )}
@@ -143,7 +171,7 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
                         <OtpInput
                             value={otp}
                             onChange={setOtp}
-                            disabled={isLoading}
+                            disabled={isGlobalLoading}
                         />
                     </div>
                 )}
@@ -170,24 +198,26 @@ export const ChangeEmailModal = ({ open, onClose }: ChangeEmailModalProps) => {
                         <OtpInput
                             value={otp}
                             onChange={setOtp}
-                            disabled={isLoading}
+                            disabled={isGlobalLoading}
                         />
                     </div>
                 )}
 
-                {(step !== 'idle' && step !== 'sending-new') && (
+                {/* Only show button for non-OTP steps (enter-new) */}
+                {step === 'enter-new' && (
                     <div className="pt-2">
                         <button
                             onClick={handleAction}
-                            disabled={isLoading}
-                            className="w-full rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+                            disabled={isGlobalLoading || !isEmailValid}
+                            className="w-full rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? <Spinner size="sm" /> : 'Continue'}
+                            {isGlobalLoading ? <Spinner size="sm" /> : 'Continue'}
                         </button>
                     </div>
                 )}
             </div>
             {verifyCurrentModal}
+            {requestNewModal}
             {confirmModal}
         </Modal>
     )

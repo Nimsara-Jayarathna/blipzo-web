@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation, faSpinner } from '@fortawesome/free-solid-svg-icons'
@@ -15,10 +16,10 @@ export const BlockingModal = ({ state, message, onClose }: BlockingModalProps) =
     const isOpen = state !== 'idle'
     useScrollLock(isOpen)
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen ? (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     {/* Backdrop */}
                     <motion.div
                         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -106,6 +107,7 @@ export const BlockingModal = ({ state, message, onClose }: BlockingModalProps) =
                     </motion.div>
                 </div>
             ) : null}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }

@@ -36,6 +36,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
         queryFn: getCategories,
         retry: 1,
         staleTime: 1000 * 60 * 5, // 5 minutes
+        refetchOnWindowFocus: false,
     })
 
     const categories = useMemo(() => data?.categories ?? [], [data?.categories])

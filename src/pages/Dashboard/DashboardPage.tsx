@@ -15,7 +15,7 @@ import { FloatingActionButton } from '../../components/FloatingActionButton'
 import { AddTransactionModal } from '../../modals/AddTransaction'
 import { SettingsModal } from '../../modals/Settings'
 import { ReportsModal } from '../../modals/Reports'
-import { logoutSession } from '../../api/auth'
+import { logoutSession, getSession } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
 import type { Transaction } from '../../types'
@@ -32,7 +32,7 @@ const transactionKey = ['transactions']
 
 export const DashboardPage = () => {
   const navigate = useNavigate()
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, setAuth } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const queryClient = useQueryClient()
   const todayDate = dayjs().format('YYYY-MM-DD')
@@ -183,7 +183,8 @@ export const DashboardPage = () => {
   const handleOpenSettings = async () => {
     setIsSettingsLoading(true)
     try {
-      await Promise.all([
+      const [sessionData] = await Promise.all([
+        getSession(),
         queryClient.prefetchQuery({
           queryKey: ['categories'],
           queryFn: getCategories,
@@ -195,6 +196,11 @@ export const DashboardPage = () => {
           staleTime: 1000 * 60 * 60, // 1 hour
         })
       ])
+
+      if (sessionData && sessionData.user) {
+        setAuth({ user: sessionData.user, token: null })
+      }
+
       setSettingsOpen(true)
     } finally {
       setIsSettingsLoading(false)

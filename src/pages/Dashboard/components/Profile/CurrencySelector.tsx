@@ -18,6 +18,7 @@ export const CurrencySelector = () => {
     queryKey: ['currencies'],
     queryFn: getSupportedCurrencies,
     staleTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
   })
 
   const {
@@ -64,7 +65,9 @@ export const CurrencySelector = () => {
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         {data?.currencies.map((currency) => {
-          const isSelected = user?.currency?._id === currency._id || user?.currency?.code === currency.code
+          const isSelected = typeof user?.currency === 'string'
+            ? user.currency === currency._id
+            : (user?.currency?._id === currency._id || user?.currency?.code === currency.code)
           const isPending = pendingCurrency === currency._id
 
           return (
