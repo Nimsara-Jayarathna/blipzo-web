@@ -8,8 +8,8 @@
   --color-neutral: #2C3E50;
   --color-muted: #4F677F;
   --color-accent: #3498DB;
-  --color-income: #2ECC71;
-  --color-expense: #E74C3C;
+  --color-income: #22C55E;
+  --color-expense: #EF4444;
 
   --font-sans: Inter, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
@@ -123,5 +123,4 @@
 [data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
   background-color: rgba(148, 163, 184, 0.6);
 }
-
 
