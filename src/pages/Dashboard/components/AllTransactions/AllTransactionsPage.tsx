@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AllTransactionsPageProps, Grouping, SortDirection, SortField, TransactionTypeFilter } from './types'
 import { Spinner } from '../../../../components/Spinner'
 import { EmptyState } from '../ui/EmptyState'
@@ -13,6 +13,94 @@ const typeOptions: { type: TransactionTypeFilter; label: string }[] = [
   { type: 'income', label: 'Inc' },
   { type: 'expense', label: 'Exp' },
 ]
+
+type DropdownOption = {
+  value: string
+  label: string
+  tone?: 'income' | 'expense'
+}
+
+const SidebarDropdown = ({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: DropdownOption[]
+  onChange: (value: string) => void
+}) => {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement | null>(null)
+  const selected = options.find(option => option.value === value) ?? options[0]
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative" ref={ref}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
+        {label}
+      </p>
+      <button
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        className="mt-2 flex w-full items-center justify-between rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold text-[var(--page-fg)] shadow-sm backdrop-blur-md transition hover:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/25"
+      >
+        <span className="flex items-center gap-2 truncate">
+          {selected?.tone ? (
+            <span
+              className={`h-2 w-2 rounded-full ${
+                selected.tone === 'income' ? 'bg-income' : 'bg-expense'
+              }`}
+              aria-hidden="true"
+            />
+          ) : null}
+          <span className="truncate">{selected?.label}</span>
+        </span>
+        <span className="text-[10px] text-[var(--text-subtle)]">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open ? (
+        <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-1)] shadow-[0_22px_50px_-24px_rgba(15,23,42,0.35)]">
+          <div className="max-h-60 overflow-y-auto py-1">
+            {options.map(option => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onChange(option.value)
+                  setOpen(false)
+                }}
+                className={`flex w-full items-center gap-2 px-4 py-2 text-xs font-semibold transition hover:bg-[var(--surface-2)] ${
+                  value === option.value ? 'bg-accent/10 text-accent' : 'text-[var(--page-fg)]'
+                }`}
+              >
+                {option.tone ? (
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      option.tone === 'income' ? 'bg-income' : 'bg-expense'
+                    }`}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                <span className="truncate">{option.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
 
 export const AllTransactionsPage = ({
   transactions,
@@ -50,6 +138,32 @@ export const AllTransactionsPage = ({
   }, [transactions, searchTerm])
 
   const grouped = useGroupedTransactions(filteredTransactions, grouping)
+
+  const categoryOptions: DropdownOption[] = [
+    { value: 'all', label: 'All categories' },
+    ...categoriesForType.map(category => ({
+      value: category.id,
+      label: category.name,
+      tone: category.type,
+    })),
+  ]
+
+  const sortOptions: DropdownOption[] = [
+    { value: 'date', label: 'Date' },
+    { value: 'amount', label: 'Amount' },
+    { value: 'category', label: 'Category' },
+  ]
+
+  const directionOptions: DropdownOption[] = [
+    { value: 'desc', label: 'Descending' },
+    { value: 'asc', label: 'Ascending' },
+  ]
+
+  const groupingOptions: DropdownOption[] = [
+    { value: 'none', label: 'None' },
+    { value: 'month', label: 'Month' },
+    { value: 'category', label: 'Category' },
+  ]
 
   return (
     <section className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_3fr] md:gap-6">
@@ -114,67 +228,32 @@ export const AllTransactionsPage = ({
           </div>
 
           <div className="space-y-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-                Category
-              </p>
-              <select
-                value={filters.categoryFilter}
-                onChange={(event) => onFiltersChange({ ...filters, categoryFilter: event.target.value })}
-                className="mt-2 w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="all">All categories</option>
-                {categoriesForType.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-                Sort By
-              </p>
-              <select
-                value={filters.sortField}
-                onChange={(event) => onFiltersChange({ ...filters, sortField: event.target.value as SortField })}
-                className="mt-2 w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="date">Date</option>
-                <option value="amount">Amount</option>
-                <option value="category">Category</option>
-              </select>
-            </div>
-
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-                Direction
-              </p>
-              <select
-                value={filters.sortDirection}
-                onChange={(event) => onFiltersChange({ ...filters, sortDirection: event.target.value as SortDirection })}
-                className="mt-2 w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="desc">Descending</option>
-                <option value="asc">Ascending</option>
-              </select>
-            </div>
-
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-                Group By
-              </p>
-              <select
-                value={grouping}
-                onChange={(event) => setGrouping(event.target.value as Grouping)}
-                className="mt-2 w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="none">None</option>
-                <option value="month">Month</option>
-                <option value="category">Category</option>
-              </select>
-            </div>
+            <SidebarDropdown
+              label="Category"
+              value={filters.categoryFilter}
+              options={categoryOptions}
+              onChange={(categoryFilter) => onFiltersChange({ ...filters, categoryFilter })}
+            />
+            <SidebarDropdown
+              label="Sort By"
+              value={filters.sortField}
+              options={sortOptions}
+              onChange={(sortField) => onFiltersChange({ ...filters, sortField: sortField as SortField })}
+            />
+            <SidebarDropdown
+              label="Direction"
+              value={filters.sortDirection}
+              options={directionOptions}
+              onChange={(sortDirection) =>
+                onFiltersChange({ ...filters, sortDirection: sortDirection as SortDirection })
+              }
+            />
+            <SidebarDropdown
+              label="Group By"
+              value={grouping}
+              options={groupingOptions}
+              onChange={(value) => setGrouping(value as Grouping)}
+            />
           </div>
         </div>
       </aside>
