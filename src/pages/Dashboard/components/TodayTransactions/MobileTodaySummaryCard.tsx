@@ -21,7 +21,7 @@ export const MobileTodaySummaryCard = ({
 
   return (
     <div
-      className={`relative rounded-[1.5rem] border border-[rgba(148,163,184,0.45)] bg-[rgba(30,41,59,0.55)] px-4 shadow-[0_16px_40px_rgba(15,23,42,0.45)] backdrop-blur-xl transition-all duration-300 ${
+      className={`relative rounded-[1.5rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 shadow-soft backdrop-blur-xl transition-all duration-300 ${
         collapsed ? 'py-3' : 'py-4'
       }`}
     >
@@ -39,7 +39,7 @@ export const MobileTodaySummaryCard = ({
       </div>
 
       {!collapsed ? (
-        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-white/10 pt-3">
+        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[var(--border-glass)] pt-3">
           <div className="text-center">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
               Income
