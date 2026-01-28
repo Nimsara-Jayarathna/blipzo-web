@@ -3,6 +3,9 @@ import type { GroupedTransactions } from './types'
 import { TransactionTableHeader } from './table/TransactionTableHeader'
 import { TransactionRow } from './table/TransactionRow'
 import { TransactionCard } from './table/TransactionCard'
+import { formatCurrency } from '../../../../utils/format'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowDown, faArrowUp, faEquals } from '@fortawesome/free-solid-svg-icons'
 
 interface AllTransactionsTableProps {
   transactions: Transaction[]
@@ -10,6 +13,7 @@ interface AllTransactionsTableProps {
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
   currency?: string
+  hideCategory?: boolean
 }
 
 const renderRows = (
@@ -17,6 +21,7 @@ const renderRows = (
   onDeleteTransaction?: (transaction: Transaction) => void,
   isDeleting?: boolean,
   currency?: string,
+  hideCategory?: boolean,
 ) =>
   list.map(transaction => {
     const key =
@@ -28,9 +33,24 @@ const renderRows = (
         onDeleteTransaction={onDeleteTransaction}
         isDeleting={isDeleting}
         currency={currency}
+        hideCategory={hideCategory}
       />
     )
   })
+
+const getGroupTotals = (items: Transaction[]) => {
+  const income = items
+    .filter(item => item.type === 'income')
+    .reduce((total, item) => total + item.amount, 0)
+  const expense = items
+    .filter(item => item.type === 'expense')
+    .reduce((total, item) => total + item.amount, 0)
+  return {
+    income,
+    expense,
+    balance: income - expense,
+  }
+}
 
 export const AllTransactionsTable = ({
   transactions,
@@ -38,6 +58,7 @@ export const AllTransactionsTable = ({
   onDeleteTransaction,
   isDeleting,
   currency,
+  hideCategory = false,
 }: AllTransactionsTableProps) => {
   if (grouped && grouped.length > 0) {
     return (
@@ -48,16 +69,34 @@ export const AllTransactionsTable = ({
               key={group.label}
               className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-3 shadow-soft backdrop-blur-xl"
             >
-              <div className="flex items-center justify-between border-b border-[var(--border-glass)] pb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-glass)] pb-2">
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-4 w-1 rounded-full bg-accent" aria-hidden="true" />
                   <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--page-fg)]">
                     Group: {group.label}
                   </span>
                 </div>
-                <span className="rounded-full border border-accent/40 bg-[var(--surface-glass)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">
-                  {group.items.length} items
-                </span>
+                <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em]">
+                  {(() => {
+                    const totals = getGroupTotals(group.items)
+                    return (
+                      <>
+                        <span className="inline-flex items-center gap-1 text-income">
+                          <FontAwesomeIcon icon={faArrowUp} />
+                          {formatCurrency(totals.income, currency)}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-expense">
+                          <FontAwesomeIcon icon={faArrowDown} />
+                          {formatCurrency(totals.expense, currency)}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 ${totals.balance >= 0 ? 'text-income' : 'text-expense'}`}>
+                          <FontAwesomeIcon icon={faEquals} />
+                          {formatCurrency(totals.balance, currency)}
+                        </span>
+                      </>
+                    )
+                  })()}
+                </div>
               </div>
               <div className="mt-3 space-y-3">
                 {group.items.map(transaction => (
@@ -89,20 +128,38 @@ export const AllTransactionsTable = ({
                       Group: {group.label}
                     </span>
                   </div>
-                  <span className="rounded-full border border-accent/40 bg-[var(--surface-glass)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-accent shadow-[0_10px_25px_-20px_rgba(52,152,219,0.7)] backdrop-blur-md">
-                    {group.items.length} items
-                  </span>
+                  <div className="flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.2em]">
+                    {(() => {
+                      const totals = getGroupTotals(group.items)
+                      return (
+                        <>
+                          <span className="inline-flex items-center gap-1 text-income">
+                            <FontAwesomeIcon icon={faArrowUp} />
+                            {formatCurrency(totals.income, currency)}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-expense">
+                            <FontAwesomeIcon icon={faArrowDown} />
+                            {formatCurrency(totals.expense, currency)}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 ${totals.balance >= 0 ? 'text-income' : 'text-expense'}`}>
+                            <FontAwesomeIcon icon={faEquals} />
+                            {formatCurrency(totals.balance, currency)}
+                          </span>
+                        </>
+                      )
+                    })()}
+                  </div>
                 </div>
                 <table className="min-w-full table-fixed text-left">
                   <colgroup>
                     <col className="w-[140px]" />
-                    <col className="w-[240px]" />
+                    {!hideCategory ? <col className="w-[240px]" /> : null}
                     <col className="w-[140px]" />
                     <col />
                     <col className="w-[56px]" />
                   </colgroup>
-                  <TransactionTableHeader />
-                  <tbody>{renderRows(group.items, onDeleteTransaction, isDeleting, currency)}</tbody>
+                  <TransactionTableHeader hideCategory={hideCategory} />
+                  <tbody>{renderRows(group.items, onDeleteTransaction, isDeleting, currency, hideCategory)}</tbody>
                 </table>
               </div>
             ))}
@@ -135,17 +192,16 @@ export const AllTransactionsTable = ({
           <table className="min-w-full table-fixed text-left">
             <colgroup>
               <col className="w-[140px]" />
-              <col className="w-[240px]" />
+              {!hideCategory ? <col className="w-[240px]" /> : null}
               <col className="w-[140px]" />
               <col />
               <col className="w-[56px]" />
             </colgroup>
-            <TransactionTableHeader />
-            <tbody>{renderRows(transactions, onDeleteTransaction, isDeleting, currency)}</tbody>
+            <TransactionTableHeader hideCategory={hideCategory} />
+            <tbody>{renderRows(transactions, onDeleteTransaction, isDeleting, currency, hideCategory)}</tbody>
           </table>
         </div>
       </div>
     </>
   )
 }
-

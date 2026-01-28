@@ -55,6 +55,7 @@ const DeleteActionCell = ({ canDelete, isDeleting, onClick }: DeleteActionCellPr
 
 interface TransactionRowComponentProps extends TransactionRowProps {
   forceDeletable?: boolean
+  hideCategory?: boolean
 }
 
 export const TransactionRow = ({
@@ -62,6 +63,7 @@ export const TransactionRow = ({
   onDeleteTransaction,
   isDeleting,
   forceDeletable = false,
+  hideCategory = false,
   currency,
 }: TransactionRowComponentProps) => {
   const isIncome = transaction.type === 'income'
@@ -70,12 +72,14 @@ export const TransactionRow = ({
   return (
     <tr className="group border-b border-[var(--border-glass)] last:border-b-0 hover:bg-[var(--surface-glass)]">
       <td className="px-4 py-3 text-sm text-[var(--page-fg)]">{formatDate(transaction.date)}</td>
-      <td
-        className="max-w-[200px] truncate px-4 py-3 text-sm text-[var(--page-fg)]"
-        title={resolveCategory(transaction)}
-      >
-        {resolveCategory(transaction)}
-      </td>
+      {!hideCategory && (
+        <td
+          className="max-w-[200px] truncate px-4 py-3 text-sm text-[var(--page-fg)]"
+          title={resolveCategory(transaction)}
+        >
+          {resolveCategory(transaction)}
+        </td>
+      )}
       <td
         className={`px-4 py-3 text-right text-sm font-semibold ${isIncome ? 'text-income' : 'text-expense'}`}
       >
@@ -84,9 +88,9 @@ export const TransactionRow = ({
       </td>
       <td
         className="max-w-[360px] truncate hidden md:table-cell px-4 py-3 text-sm text-[var(--text-muted)]"
-        title={transaction.note ?? 'No note'}
+        title={transaction.note ?? ''}
       >
-        {transaction.note ?? 'No note'}
+        {transaction.note ?? ''}
       </td>
       <td className="px-4 py-3 text-right text-sm">
         <DeleteActionCell

@@ -22,6 +22,7 @@ export interface AllTransactionsPageProps {
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
   currency?: string
+  onOpenSummary?: () => void
 }
 
 export interface GroupedTransactions {

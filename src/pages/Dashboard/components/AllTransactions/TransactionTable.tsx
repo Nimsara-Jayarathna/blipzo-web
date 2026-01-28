@@ -8,9 +8,10 @@ interface TransactionTableProps {
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
   currency?: string
+  hideCategory?: boolean
 }
 
-export const TransactionTable = ({ transactions, grouped, onDeleteTransaction, isDeleting, currency }: TransactionTableProps) => {
+export const TransactionTable = ({ transactions, grouped, onDeleteTransaction, isDeleting, currency, hideCategory }: TransactionTableProps) => {
   return (
     <AllTransactionsTable
       transactions={transactions}
@@ -18,6 +19,7 @@ export const TransactionTable = ({ transactions, grouped, onDeleteTransaction, i
       onDeleteTransaction={onDeleteTransaction}
       isDeleting={isDeleting}
       currency={currency}
+      hideCategory={hideCategory}
     />
   )
 }

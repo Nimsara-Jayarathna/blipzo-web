@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import dayjs from 'dayjs'
 import type { AllTransactionsPageProps, Grouping, SortDirection, SortField, TransactionTypeFilter } from './types'
 import { Spinner } from '../../../../components/Spinner'
 import { EmptyState } from '../ui/EmptyState'
@@ -6,7 +7,7 @@ import { TransactionTable } from './TransactionTable'
 import { useAllTransactionsCategories } from './hooks/useAllTransactionsCategories'
 import { useGroupedTransactions } from './hooks/useGroupedTransactions'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { faChartPie, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 
 const typeOptions: { type: TransactionTypeFilter; label: string }[] = [
   { type: 'all', label: 'All' },
@@ -110,6 +111,7 @@ export const AllTransactionsPage = ({
   onDeleteTransaction,
   isDeleting,
   currency,
+  onOpenSummary,
 }: AllTransactionsPageProps) => {
   const [grouping, setGrouping] = useState<Grouping>('none')
   const [searchTerm, setSearchTerm] = useState('')
@@ -155,8 +157,8 @@ export const AllTransactionsPage = ({
   ]
 
   const directionOptions: DropdownOption[] = [
-    { value: 'desc', label: 'Descending' },
-    { value: 'asc', label: 'Ascending' },
+    { value: 'desc', label: 'Descending ↓' },
+    { value: 'asc', label: 'Ascending ↑' },
   ]
 
   const groupingOptions: DropdownOption[] = [
@@ -164,6 +166,20 @@ export const AllTransactionsPage = ({
     { value: 'month', label: 'Month' },
     { value: 'category', label: 'Category' },
   ]
+
+  const handleResetFilters = () => {
+    setSearchTerm('')
+    setGrouping('none')
+    onFiltersChange({
+      ...filters,
+      startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
+      endDate: dayjs().endOf('month').format('YYYY-MM-DD'),
+      typeFilter: 'all',
+      categoryFilter: 'all',
+      sortField: 'date',
+      sortDirection: 'desc',
+    })
+  }
 
   return (
     <section className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_3fr] md:gap-6">
@@ -179,7 +195,7 @@ export const AllTransactionsPage = ({
           />
         </div>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-3 space-y-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
               Date Range
@@ -204,7 +220,7 @@ export const AllTransactionsPage = ({
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
               Type
             </p>
-            <div className="mt-2 inline-flex w-full flex-col gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-2">
+            <div className="mt-2 inline-flex w-full items-center justify-between rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
               {typeOptions.map((option) => {
                 const isActive = filters.typeFilter === option.type
                 return (
@@ -214,7 +230,7 @@ export const AllTransactionsPage = ({
                     onClick={() =>
                       onFiltersChange({ ...filters, typeFilter: option.type, categoryFilter: 'all' })
                     }
-                    className={`rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                       isActive
                         ? 'bg-accent text-white shadow-[0_10px_25px_-18px_rgba(59,130,246,0.8)]'
                         : 'text-[var(--text-muted)] hover:text-[var(--page-fg)]'
@@ -254,6 +270,25 @@ export const AllTransactionsPage = ({
               options={groupingOptions}
               onChange={(value) => setGrouping(value as Grouping)}
             />
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+            >
+              Reset Filters
+            </button>
+            {onOpenSummary ? (
+              <button
+                type="button"
+                onClick={onOpenSummary}
+                className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+              >
+                <span className="inline-flex items-center justify-center gap-2">
+                  <FontAwesomeIcon icon={faChartPie} />
+                  Summary
+                </span>
+              </button>
+            ) : null}
           </div>
         </div>
       </aside>
@@ -270,6 +305,7 @@ export const AllTransactionsPage = ({
             onDeleteTransaction={onDeleteTransaction}
             isDeleting={isDeleting}
             currency={currency}
+            hideCategory={grouping === 'category'}
           />
         )}
       </div>

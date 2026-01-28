@@ -22,7 +22,6 @@ import type { Transaction } from '../../types'
 import type { TransactionFilters } from '../../api/transactions'
 import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
-import { faChartPie } from '@fortawesome/free-solid-svg-icons'
 import { SummaryModal } from '../../modals/SummaryModal'
 import { getCategories } from '../../api/categories'
 import { getSupportedCurrencies } from '../../api/currencies'
@@ -297,19 +296,11 @@ export const DashboardPage = () => {
               onDeleteTransaction={handleDeleteTransaction}
               isDeleting={isDeleting}
               currency={user?.currency?.code}
+              onOpenSummary={() => setSummaryOpen(true)}
             />
           )}
         </Widget>
       </main>
-
-      {activeTab === 'all' && (
-        <FloatingActionButton
-          onClick={() => setSummaryOpen(true)}
-          icon={faChartPie}
-          label="View Summary"
-          className="bottom-24 sm:bottom-28 bg-[var(--surface-glass)] text-[var(--fg)] hover:bg-[var(--surface-glass-thick)] border border-[var(--border-glass)]"
-        />
-      )}
 
       <FloatingActionButton onClick={() => setAddTransactionOpen(true)} />
 
