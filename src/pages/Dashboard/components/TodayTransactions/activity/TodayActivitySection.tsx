@@ -75,11 +75,13 @@ export const TodayActivitySection = ({
         <TodaySummaryCards income={income} expense={expense} balance={balance} currency={currency} />
       </div>
       <section className="flex min-h-0 flex-1 flex-col rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-4 shadow-sm backdrop-blur-xl sm:rounded-[2.5rem] sm:p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="sm:hidden">
+          <p className="mb-3 text-center text-[12px] font-semibold uppercase tracking-[0.3em] text-[var(--text-subtle)]">
+            Today&apos;s Transactions
+          </p>
+        </div>
+        <div className="hidden sm:block mb-4">
           <ListHeader title="Today's Activity" />
-          <div className="sm:hidden">
-            {/* Mobile specific header actions if needed */}
-          </div>
         </div>
         <div
           ref={listScrollRef}
