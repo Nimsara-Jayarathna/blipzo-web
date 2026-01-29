@@ -8,6 +8,7 @@ import { useAllTransactionsCategories } from './hooks/useAllTransactionsCategori
 import { useGroupedTransactions } from './hooks/useGroupedTransactions'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartPie, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { Modal } from '../../../../components/Modal'
 
 const typeOptions: { type: TransactionTypeFilter; label: string }[] = [
   { type: 'all', label: 'All' },
@@ -116,6 +117,9 @@ export const AllTransactionsPage = ({
   const [grouping, setGrouping] = useState<Grouping>('none')
   const [searchTerm, setSearchTerm] = useState('')
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [tempFilters, setTempFilters] = useState(filters)
+  const [tempGrouping, setTempGrouping] = useState<Grouping>('none')
+  const [tempSearchTerm, setTempSearchTerm] = useState('')
 
   const { categoriesForType } = useAllTransactionsCategories(filters, onFiltersChange)
 
@@ -168,18 +172,44 @@ export const AllTransactionsPage = ({
     { value: 'category', label: 'Category' },
   ]
 
+  const buildDefaultFilters = () => ({
+    ...filters,
+    startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
+    endDate: dayjs().endOf('month').format('YYYY-MM-DD'),
+    typeFilter: 'all',
+    categoryFilter: 'all',
+    sortField: 'date',
+    sortDirection: 'desc',
+  })
+
   const handleResetFilters = () => {
     setSearchTerm('')
     setGrouping('none')
-    onFiltersChange({
-      ...filters,
-      startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
-      endDate: dayjs().endOf('month').format('YYYY-MM-DD'),
-      typeFilter: 'all',
-      categoryFilter: 'all',
-      sortField: 'date',
-      sortDirection: 'desc',
-    })
+    onFiltersChange(buildDefaultFilters())
+  }
+
+  const openMobileFilters = () => {
+    setTempFilters(filters)
+    setTempGrouping(grouping)
+    setTempSearchTerm(searchTerm)
+    setMobileFiltersOpen(true)
+  }
+
+  const applyMobileFilters = () => {
+    setSearchTerm(tempSearchTerm)
+    setGrouping(tempGrouping)
+    onFiltersChange(tempFilters)
+    setMobileFiltersOpen(false)
+  }
+
+  const resetMobileFilters = () => {
+    const defaults = buildDefaultFilters()
+    setTempSearchTerm('')
+    setTempGrouping('none')
+    setTempFilters(defaults)
+    setSearchTerm('')
+    setGrouping('none')
+    onFiltersChange(defaults)
   }
 
   const typeLabel =
@@ -195,8 +225,26 @@ export const AllTransactionsPage = ({
   const groupLabel = groupingOptions.find(option => option.value === grouping)?.label ?? 'None'
   const rangeLabel = `${dayjs(filters.startDate).format('MMM D')}–${dayjs(filters.endDate).format('MMM D')}`
 
-  const filterContent = (
+  const renderFilterContent = (
+    activeFilters: typeof filters,
+    onFiltersUpdate: (next: typeof filters) => void,
+    activeGrouping: Grouping,
+    onGroupingChange: (next: Grouping) => void,
+    activeSearch: string,
+    onSearchChange: (next: string) => void,
+  ) => (
     <div className="mt-3 space-y-3">
+      <div className="flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-sm text-[var(--page-fg)]">
+        <FontAwesomeIcon icon={faMagnifyingGlass} className="text-[var(--text-muted)]" />
+        <input
+          type="search"
+          value={activeSearch}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Search transactions"
+          className="w-full bg-transparent text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] focus:outline-none"
+        />
+      </div>
+
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
           Date Range
@@ -204,32 +252,31 @@ export const AllTransactionsPage = ({
         <div className="mt-2 space-y-2">
           <input
             type="date"
-            value={filters.startDate}
-            onChange={(event) => onFiltersChange({ ...filters, startDate: event.target.value })}
+            value={activeFilters.startDate}
+            onChange={(event) => onFiltersUpdate({ ...activeFilters, startDate: event.target.value })}
             className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
           <input
             type="date"
-            value={filters.endDate}
-            onChange={(event) => onFiltersChange({ ...filters, endDate: event.target.value })}
+            value={activeFilters.endDate}
+            onChange={(event) => onFiltersUpdate({ ...activeFilters, endDate: event.target.value })}
             className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
         </div>
       </div>
-
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
           Type
         </p>
         <div className="mt-2 inline-flex w-full items-center justify-between rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
           {typeOptions.map((option) => {
-            const isActive = filters.typeFilter === option.type
+            const isActive = activeFilters.typeFilter === option.type
             return (
               <button
                 key={option.type}
                 type="button"
                 onClick={() =>
-                  onFiltersChange({ ...filters, typeFilter: option.type, categoryFilter: 'all' })
+                  onFiltersUpdate({ ...activeFilters, typeFilter: option.type, categoryFilter: 'all' })
                 }
                 className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                   isActive
@@ -247,49 +294,30 @@ export const AllTransactionsPage = ({
       <div className="space-y-3">
         <SidebarDropdown
           label="Category"
-          value={filters.categoryFilter}
+          value={activeFilters.categoryFilter}
           options={categoryOptions}
-          onChange={(categoryFilter) => onFiltersChange({ ...filters, categoryFilter })}
+          onChange={(categoryFilter) => onFiltersUpdate({ ...activeFilters, categoryFilter })}
         />
         <SidebarDropdown
           label="Sort By"
-          value={filters.sortField}
+          value={activeFilters.sortField}
           options={sortOptions}
-          onChange={(sortField) => onFiltersChange({ ...filters, sortField: sortField as SortField })}
+          onChange={(sortField) => onFiltersUpdate({ ...activeFilters, sortField: sortField as SortField })}
         />
         <SidebarDropdown
           label="Direction"
-          value={filters.sortDirection}
+          value={activeFilters.sortDirection}
           options={directionOptions}
           onChange={(sortDirection) =>
-            onFiltersChange({ ...filters, sortDirection: sortDirection as SortDirection })
+            onFiltersUpdate({ ...activeFilters, sortDirection: sortDirection as SortDirection })
           }
         />
         <SidebarDropdown
           label="Group By"
-          value={grouping}
+          value={activeGrouping}
           options={groupingOptions}
-          onChange={(value) => setGrouping(value as Grouping)}
+          onChange={(value) => onGroupingChange(value as Grouping)}
         />
-        <button
-          type="button"
-          onClick={handleResetFilters}
-          className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
-        >
-          Reset Filters
-        </button>
-        {onOpenSummary ? (
-          <button
-            type="button"
-            onClick={onOpenSummary}
-            className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
-          >
-            <span className="inline-flex items-center justify-center gap-2">
-              <FontAwesomeIcon icon={faChartPie} />
-              Summary
-            </span>
-          </button>
-        ) : null}
       </div>
     </div>
   )
@@ -299,7 +327,7 @@ export const AllTransactionsPage = ({
       <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-soft backdrop-blur-xl md:hidden">
         <button
           type="button"
-          onClick={() => setMobileFiltersOpen(prev => !prev)}
+          onClick={openMobileFilters}
           className="flex w-full items-center justify-between text-left"
         >
           <div className="space-y-2">
@@ -324,39 +352,32 @@ export const AllTransactionsPage = ({
               </span>
             </div>
           </div>
-          <span className="text-xs font-semibold text-[var(--text-subtle)]">
-            {mobileFiltersOpen ? 'Hide' : 'Edit'}
-          </span>
         </button>
-        {mobileFiltersOpen ? (
-          <>
-            <div className="mt-3 flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-sm text-[var(--page-fg)]">
-              <FontAwesomeIcon icon={faMagnifyingGlass} className="text-[var(--text-muted)]" />
-              <input
-                type="search"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search transactions"
-                className="w-full bg-transparent text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] focus:outline-none"
-              />
-            </div>
-            {filterContent}
-          </>
-        ) : null}
       </div>
 
       <aside className="hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-soft backdrop-blur-xl md:block md:sticky md:top-24 md:self-start">
-        <div className="flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-sm text-[var(--page-fg)]">
-          <FontAwesomeIcon icon={faMagnifyingGlass} className="text-[var(--text-muted)]" />
-          <input
-            type="search"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search transactions"
-            className="w-full bg-transparent text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] focus:outline-none"
-          />
+        {renderFilterContent(filters, onFiltersChange, grouping, setGrouping, searchTerm, setSearchTerm)}
+        <div className="mt-3 space-y-3">
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+          >
+            Reset Filters
+          </button>
+          {onOpenSummary ? (
+            <button
+              type="button"
+              onClick={onOpenSummary}
+              className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                <FontAwesomeIcon icon={faChartPie} />
+                Summary
+              </span>
+            </button>
+          ) : null}
         </div>
-        {filterContent}
       </aside>
 
       <div className="min-w-0">
@@ -375,6 +396,50 @@ export const AllTransactionsPage = ({
           />
         )}
       </div>
+
+      <Modal
+        open={mobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        title="Filters"
+        subtitle="Refine your transactions"
+        widthClassName="max-w-md"
+      >
+        {renderFilterContent(tempFilters, setTempFilters, tempGrouping, setTempGrouping, tempSearchTerm, setTempSearchTerm)}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              resetMobileFilters()
+              setMobileFiltersOpen(false)
+            }}
+            className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={applyMobileFilters}
+            className="w-full rounded-2xl bg-accent px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-[0_12px_25px_-18px_rgba(59,130,246,0.8)] transition hover:opacity-90"
+          >
+            Apply
+          </button>
+        </div>
+        {onOpenSummary ? (
+          <button
+            type="button"
+            onClick={() => {
+              applyMobileFilters()
+              onOpenSummary()
+            }}
+            className="mt-3 w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <FontAwesomeIcon icon={faChartPie} />
+              Summary
+            </span>
+          </button>
+        ) : null}
+      </Modal>
     </section>
   )
 }
