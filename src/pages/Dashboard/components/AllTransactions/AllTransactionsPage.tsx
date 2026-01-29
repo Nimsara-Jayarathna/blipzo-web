@@ -115,6 +115,7 @@ export const AllTransactionsPage = ({
 }: AllTransactionsPageProps) => {
   const [grouping, setGrouping] = useState<Grouping>('none')
   const [searchTerm, setSearchTerm] = useState('')
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   const { categoriesForType } = useAllTransactionsCategories(filters, onFiltersChange)
 
@@ -181,9 +182,170 @@ export const AllTransactionsPage = ({
     })
   }
 
+  const typeLabel =
+    filters.typeFilter === 'all'
+      ? 'All'
+      : filters.typeFilter === 'income'
+        ? 'Income'
+        : 'Expense'
+  const categoryLabel =
+    categoryOptions.find(option => option.value === filters.categoryFilter)?.label ?? 'All categories'
+  const sortLabel = sortOptions.find(option => option.value === filters.sortField)?.label ?? 'Date'
+  const directionLabel = filters.sortDirection === 'asc' ? 'Asc ↑' : 'Desc ↓'
+  const groupLabel = groupingOptions.find(option => option.value === grouping)?.label ?? 'None'
+  const rangeLabel = `${dayjs(filters.startDate).format('MMM D')}–${dayjs(filters.endDate).format('MMM D')}`
+
+  const filterContent = (
+    <div className="mt-3 space-y-3">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
+          Date Range
+        </p>
+        <div className="mt-2 space-y-2">
+          <input
+            type="date"
+            value={filters.startDate}
+            onChange={(event) => onFiltersChange({ ...filters, startDate: event.target.value })}
+            className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+          <input
+            type="date"
+            value={filters.endDate}
+            onChange={(event) => onFiltersChange({ ...filters, endDate: event.target.value })}
+            className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
+          Type
+        </p>
+        <div className="mt-2 inline-flex w-full items-center justify-between rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
+          {typeOptions.map((option) => {
+            const isActive = filters.typeFilter === option.type
+            return (
+              <button
+                key={option.type}
+                type="button"
+                onClick={() =>
+                  onFiltersChange({ ...filters, typeFilter: option.type, categoryFilter: 'all' })
+                }
+                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                  isActive
+                    ? 'bg-accent text-white shadow-[0_10px_25px_-18px_rgba(59,130,246,0.8)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--page-fg)]'
+                }`}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <SidebarDropdown
+          label="Category"
+          value={filters.categoryFilter}
+          options={categoryOptions}
+          onChange={(categoryFilter) => onFiltersChange({ ...filters, categoryFilter })}
+        />
+        <SidebarDropdown
+          label="Sort By"
+          value={filters.sortField}
+          options={sortOptions}
+          onChange={(sortField) => onFiltersChange({ ...filters, sortField: sortField as SortField })}
+        />
+        <SidebarDropdown
+          label="Direction"
+          value={filters.sortDirection}
+          options={directionOptions}
+          onChange={(sortDirection) =>
+            onFiltersChange({ ...filters, sortDirection: sortDirection as SortDirection })
+          }
+        />
+        <SidebarDropdown
+          label="Group By"
+          value={grouping}
+          options={groupingOptions}
+          onChange={(value) => setGrouping(value as Grouping)}
+        />
+        <button
+          type="button"
+          onClick={handleResetFilters}
+          className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+        >
+          Reset Filters
+        </button>
+        {onOpenSummary ? (
+          <button
+            type="button"
+            onClick={onOpenSummary}
+            className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <FontAwesomeIcon icon={faChartPie} />
+              Summary
+            </span>
+          </button>
+        ) : null}
+      </div>
+    </div>
+  )
+
   return (
     <section className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_3fr] md:gap-6">
-      <aside className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-soft backdrop-blur-xl md:sticky md:top-24 md:self-start">
+      <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-soft backdrop-blur-xl md:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileFiltersOpen(prev => !prev)}
+          className="flex w-full items-center justify-between text-left"
+        >
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[var(--text-subtle)]">
+              Filters
+            </p>
+            <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">
+              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
+                {rangeLabel}
+              </span>
+              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
+                {typeLabel}
+              </span>
+              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
+                {categoryLabel}
+              </span>
+              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
+                {sortLabel} · {directionLabel}
+              </span>
+              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
+                Group: {groupLabel}
+              </span>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-[var(--text-subtle)]">
+            {mobileFiltersOpen ? 'Hide' : 'Edit'}
+          </span>
+        </button>
+        {mobileFiltersOpen ? (
+          <>
+            <div className="mt-3 flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-sm text-[var(--page-fg)]">
+              <FontAwesomeIcon icon={faMagnifyingGlass} className="text-[var(--text-muted)]" />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search transactions"
+                className="w-full bg-transparent text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] focus:outline-none"
+              />
+            </div>
+            {filterContent}
+          </>
+        ) : null}
+      </div>
+
+      <aside className="hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-soft backdrop-blur-xl md:block md:sticky md:top-24 md:self-start">
         <div className="flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-sm text-[var(--page-fg)]">
           <FontAwesomeIcon icon={faMagnifyingGlass} className="text-[var(--text-muted)]" />
           <input
@@ -194,103 +356,7 @@ export const AllTransactionsPage = ({
             className="w-full bg-transparent text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] focus:outline-none"
           />
         </div>
-
-        <div className="mt-3 space-y-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-              Date Range
-            </p>
-            <div className="mt-2 space-y-2">
-              <input
-                type="date"
-                value={filters.startDate}
-                onChange={(event) => onFiltersChange({ ...filters, startDate: event.target.value })}
-                className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
-              />
-              <input
-                type="date"
-                value={filters.endDate}
-                onChange={(event) => onFiltersChange({ ...filters, endDate: event.target.value })}
-                className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs text-[var(--page-fg)] focus:outline-none focus:ring-2 focus:ring-accent/30"
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-subtle)]">
-              Type
-            </p>
-            <div className="mt-2 inline-flex w-full items-center justify-between rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
-              {typeOptions.map((option) => {
-                const isActive = filters.typeFilter === option.type
-                return (
-                  <button
-                    key={option.type}
-                    type="button"
-                    onClick={() =>
-                      onFiltersChange({ ...filters, typeFilter: option.type, categoryFilter: 'all' })
-                    }
-                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
-                      isActive
-                        ? 'bg-accent text-white shadow-[0_10px_25px_-18px_rgba(59,130,246,0.8)]'
-                        : 'text-[var(--text-muted)] hover:text-[var(--page-fg)]'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <SidebarDropdown
-              label="Category"
-              value={filters.categoryFilter}
-              options={categoryOptions}
-              onChange={(categoryFilter) => onFiltersChange({ ...filters, categoryFilter })}
-            />
-            <SidebarDropdown
-              label="Sort By"
-              value={filters.sortField}
-              options={sortOptions}
-              onChange={(sortField) => onFiltersChange({ ...filters, sortField: sortField as SortField })}
-            />
-            <SidebarDropdown
-              label="Direction"
-              value={filters.sortDirection}
-              options={directionOptions}
-              onChange={(sortDirection) =>
-                onFiltersChange({ ...filters, sortDirection: sortDirection as SortDirection })
-              }
-            />
-            <SidebarDropdown
-              label="Group By"
-              value={grouping}
-              options={groupingOptions}
-              onChange={(value) => setGrouping(value as Grouping)}
-            />
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
-            >
-              Reset Filters
-            </button>
-            {onOpenSummary ? (
-              <button
-                type="button"
-                onClick={onOpenSummary}
-                className="w-full rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
-              >
-                <span className="inline-flex items-center justify-center gap-2">
-                  <FontAwesomeIcon icon={faChartPie} />
-                  Summary
-                </span>
-              </button>
-            ) : null}
-          </div>
-        </div>
+        {filterContent}
       </aside>
 
       <div className="min-w-0">
