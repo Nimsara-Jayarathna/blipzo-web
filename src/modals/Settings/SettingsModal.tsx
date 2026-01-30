@@ -48,17 +48,21 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       onClose={onClose}
       title="Settings"
       widthClassName="max-w-4xl"
+      bodyScroll={false}
+      containerClassName="p-0 sm:p-6"
+      panelClassName="h-full min-h-screen rounded-none px-4 pb-4 pt-6 sm:h-auto sm:min-h-0 sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10"
     >
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[200px_1fr]">
-        <nav className="flex w-full gap-2 overflow-x-auto pb-1 md:flex-col md:gap-2 md:overflow-visible">
+      <div className="flex min-h-0 flex-col gap-4 md:grid md:min-h-[520px] md:grid-cols-[220px_1fr] md:gap-6">
+        <nav className="flex w-full gap-2 overflow-x-auto pb-2 [-ms-overflow-style:'none'] [scrollbar-width:'none'] md:flex-col md:gap-2 md:overflow-visible">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-medium transition-all sm:text-sm md:px-4 md:py-3 ${activeTab === tab.id
-                ? 'bg-[var(--surface-glass-thick)] text-[var(--accent)] border border-[var(--border-glass)]'
-                : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass-thick)] hover:text-[var(--page-fg)]'
-                }`}
+              className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all sm:text-sm sm:tracking-normal md:justify-start md:rounded-2xl md:px-4 md:py-3 md:text-sm ${
+                activeTab === tab.id
+                  ? 'bg-[var(--surface-glass-thick)] text-[var(--accent)] border-[var(--border-glass)] shadow-soft'
+                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass-thick)] hover:text-[var(--page-fg)]'
+              }`}
             >
               <FontAwesomeIcon icon={tab.icon} className={activeTab === tab.id ? 'text-[var(--accent)]' : ''} />
               {tab.label}
@@ -66,20 +70,22 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
           ))}
         </nav>
 
-        <div className="flex min-h-[360px] max-h-[60vh] flex-col overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-4 sm:p-6 md:h-[550px] md:max-h-none">
-          {activeTab === 'profile' ? (
-            <ProfileSettingsTab />
-          ) : activeTab === 'categories' ? (
-            <SettingsCategoriesTab
-              isAddCategoryOpen={isAddCategoryOpen}
-              onAddCategoryClose={() => setAddCategoryOpen(false)}
-              onAddCategoryOpen={() => setAddCategoryOpen(true)}
-            />
-          ) : activeTab === 'currency' ? (
-            <CurrencySettingsTab />
-          ) : activeTab === 'security' ? (
-            <SecuritySettingsTab />
-          ) : null}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-0 sm:rounded-3xl sm:border sm:border-[var(--border-glass)] sm:bg-[var(--surface-glass)]/30 sm:p-6">
+          <div className="flex-1 overflow-y-auto pr-0 sm:pr-1">
+            {activeTab === 'profile' ? (
+              <ProfileSettingsTab />
+            ) : activeTab === 'categories' ? (
+              <SettingsCategoriesTab
+                isAddCategoryOpen={isAddCategoryOpen}
+                onAddCategoryClose={() => setAddCategoryOpen(false)}
+                onAddCategoryOpen={() => setAddCategoryOpen(true)}
+              />
+            ) : activeTab === 'currency' ? (
+              <CurrencySettingsTab />
+            ) : activeTab === 'security' ? (
+              <SecuritySettingsTab />
+            ) : null}
+          </div>
         </div>
       </div>
     </Modal>

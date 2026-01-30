@@ -23,6 +23,8 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     const [defaultIncomeId, setDefaultIncomeId] = useState('')
     const [defaultExpenseId, setDefaultExpenseId] = useState('')
     const [uiError, setUiError] = useState<{ message: string; detail?: string } | null>(null)
+    const [activeType, setActiveType] = useState<'income' | 'expense'>('income')
+    const [isMobile, setIsMobile] = useState(false)
 
     const {
         data,
@@ -95,6 +97,15 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
         }
     }, [isError])
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+        const mediaQuery = window.matchMedia('(max-width: 639px)')
+        const update = () => setIsMobile(mediaQuery.matches)
+        update()
+        mediaQuery.addEventListener?.('change', update)
+        return () => mediaQuery.removeEventListener?.('change', update)
+    }, [])
+
 
     const handleDefaultSelect = (categoryId: string, categoryType: 'income' | 'expense') => {
         if (!categoryId) return
@@ -128,7 +139,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
 
     return (
         <div className="relative flex h-full flex-col">
-            <div className="mb-6 flex shrink-0 items-center justify-between">
+            <div className="mb-4 flex shrink-0 flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Categories</h2>
                     <p className="text-sm text-[var(--text-muted)]">Manage your income and expense categories</p>
@@ -136,13 +147,35 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                 <button
                     type="button"
                     onClick={onAddCategoryOpen}
-                    className="relative overflow-hidden rounded-xl bg-[#3498db] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95"
+                    className="relative w-full overflow-hidden rounded-xl bg-[#3498db] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 sm:w-auto sm:py-2.5"
                 >
-                    <span className="relative z-10 flex items-center gap-2">
+                    <span className="relative z-10 flex items-center justify-center gap-2">
                         <span className="text-lg leading-none">+</span>
                         <span>Add Category</span>
                     </span>
                 </button>
+            </div>
+
+            <div className="mb-4 flex items-center justify-center sm:hidden">
+                <div className="inline-flex w-full items-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
+                    {(['income', 'expense'] as const).map(type => {
+                        const isActive = activeType === type
+                        return (
+                            <button
+                                key={type}
+                                type="button"
+                                onClick={() => setActiveType(type)}
+                                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition-all ${
+                                    isActive
+                                        ? 'bg-accent text-white shadow-[0_10px_25px_-18px_rgba(59,130,246,0.8)]'
+                                        : 'text-[var(--text-muted)]'
+                                }`}
+                            >
+                                {type === 'income' ? 'Income' : 'Expense'}
+                            </button>
+                        )
+                    })}
+                </div>
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col space-y-5">
@@ -157,12 +190,13 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                     </div>
                 ) : null}
 
-                <div className="min-h-0 flex-1 group relative overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass)]/30 p-1 transition-all hover:border-[var(--border-glass-strong)] hover:shadow-lg hover:shadow-black/5">
-                    <div className="relative h-full rounded-[1.4rem] bg-[var(--page-bg)]/40 p-6 backdrop-blur-xl overflow-hidden flex flex-col">
+                <div className="min-h-0 flex-1 sm:group sm:relative sm:overflow-hidden sm:rounded-3xl sm:border sm:border-[var(--border-glass)] sm:bg-gradient-to-br sm:from-[var(--surface-glass)] sm:to-[var(--surface-glass)]/30 sm:p-1 sm:transition-all sm:hover:border-[var(--border-glass-strong)] sm:hover:shadow-lg sm:hover:shadow-black/5">
+                    <div className="relative h-full overflow-hidden sm:rounded-[1.4rem] sm:bg-[var(--page-bg)]/40 sm:p-6 sm:backdrop-blur-xl sm:overflow-hidden flex flex-col">
                         <CategoriesGrid
                             isLoading={isLoading}
                             categories={categories}
                             limit={categoriesLimit}
+                            view={isMobile ? activeType : 'all'}
                             deleteMutation={{ isPending: isDeleting, variables: undefined }}
                             resolveCategoryId={resolveCategoryId}
                             onDelete={handleDelete}
