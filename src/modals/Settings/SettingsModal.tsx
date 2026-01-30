@@ -48,9 +48,10 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       onClose={onClose}
       title="Settings"
       widthClassName="max-w-4xl"
-      bodyScroll={false}
-      containerClassName="p-0 sm:p-6"
-      panelClassName="h-full min-h-screen rounded-none px-4 pb-4 pt-6 sm:h-auto sm:min-h-0 sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10"
+      bodyScroll
+      bodyClassName="flex-1 max-h-none overflow-y-auto"
+      containerClassName="items-start p-2 sm:items-center sm:p-6"
+      panelClassName="flex max-h-[calc(100svh-16px)] w-[calc(100vw-16px)] flex-col rounded-2xl px-4 pb-3 pt-4 sm:h-auto sm:max-h-none sm:w-full sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10"
     >
       <div className="flex min-h-0 flex-col gap-4 md:grid md:min-h-[520px] md:grid-cols-[220px_1fr] md:gap-6">
         <nav className="flex w-full gap-2 overflow-x-auto pb-2 [-ms-overflow-style:'none'] [scrollbar-width:'none'] md:flex-col md:gap-2 md:overflow-visible">

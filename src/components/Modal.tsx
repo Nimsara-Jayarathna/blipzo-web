@@ -77,7 +77,7 @@ export const Modal = ({
                 </button>
               ) : null}
             </div>
-            <div className="flex flex-col gap-5">
+            <div className="flex min-h-0 flex-col gap-5">
               {title ? (
                 <div className="pr-4">
                   <h2 className="text-2xl font-semibold text-[var(--page-fg)]">{title}</h2>
