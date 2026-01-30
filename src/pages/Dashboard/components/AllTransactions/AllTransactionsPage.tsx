@@ -7,7 +7,15 @@ import { TransactionTable } from './TransactionTable'
 import { useAllTransactionsCategories } from './hooks/useAllTransactionsCategories'
 import { useGroupedTransactions } from './hooks/useGroupedTransactions'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChartPie, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import {
+  faCalendarDays,
+  faChartPie,
+  faChevronDown,
+  faLayerGroup,
+  faMagnifyingGlass,
+  faTag,
+  faArrowsUpDown,
+} from '@fortawesome/free-solid-svg-icons'
 import { Modal } from '../../../../components/Modal'
 
 const typeOptions: { type: TransactionTypeFilter; label: string }[] = [
@@ -172,7 +180,7 @@ export const AllTransactionsPage = ({
     { value: 'category', label: 'Category' },
   ]
 
-  const buildDefaultFilters = () => ({
+  const buildDefaultFilters = (): AllTransactionsPageProps['filters'] => ({
     ...filters,
     startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
     endDate: dayjs().endOf('month').format('YYYY-MM-DD'),
@@ -212,6 +220,7 @@ export const AllTransactionsPage = ({
     onFiltersChange(defaults)
   }
 
+  const defaultFilters = buildDefaultFilters()
   const typeLabel =
     filters.typeFilter === 'all'
       ? 'All'
@@ -221,9 +230,14 @@ export const AllTransactionsPage = ({
   const categoryLabel =
     categoryOptions.find(option => option.value === filters.categoryFilter)?.label ?? 'All categories'
   const sortLabel = sortOptions.find(option => option.value === filters.sortField)?.label ?? 'Date'
-  const directionLabel = filters.sortDirection === 'asc' ? 'Asc ↑' : 'Desc ↓'
+  const directionLabel = filters.sortDirection === 'asc' ? 'Asc' : 'Desc'
   const groupLabel = groupingOptions.find(option => option.value === grouping)?.label ?? 'None'
-  const rangeLabel = `${dayjs(filters.startDate).format('MMM D')}–${dayjs(filters.endDate).format('MMM D')}`
+  const rangeLabel = `${dayjs(filters.startDate).format('MMM D')} – ${dayjs(filters.endDate).format('MMM D')}`
+  const isDateDefault =
+    filters.startDate === defaultFilters.startDate && filters.endDate === defaultFilters.endDate
+  const isCategoryDefault = filters.categoryFilter === 'all'
+  const isSortDefault = filters.sortField === defaultFilters.sortField && filters.sortDirection === defaultFilters.sortDirection
+  const isGroupDefault = grouping === 'none'
 
   const renderFilterContent = (
     activeFilters: typeof filters,
@@ -324,34 +338,70 @@ export const AllTransactionsPage = ({
 
   return (
     <section className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_3fr] md:gap-6">
-      <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-soft backdrop-blur-xl md:hidden">
+      <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-6 shadow-soft backdrop-blur-xl md:hidden">
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] font-semibold text-[var(--text-subtle)]">Filters</p>
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="text-xs font-semibold text-[var(--text-muted)] transition hover:text-[var(--page-fg)]"
+          >
+            Reset
+          </button>
+        </div>
         <button
           type="button"
           onClick={openMobileFilters}
-          className="flex w-full items-center justify-between text-left"
+          className="mt-3 flex w-full flex-wrap gap-3 text-left text-xs"
         >
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[var(--text-subtle)]">
-              Filters
-            </p>
-            <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">
-              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
-                {rangeLabel}
-              </span>
-              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
-                {typeLabel}
-              </span>
-              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
-                {categoryLabel}
-              </span>
-              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
-                {sortLabel} · {directionLabel}
-              </span>
-              <span className="rounded-full border border-[var(--border-glass)] px-2 py-1">
-                Group: {groupLabel}
-              </span>
-            </div>
-          </div>
+          <span
+            className={`inline-flex min-w-[112px] items-center gap-2 rounded-2xl border px-3 py-2 ${
+              isDateDefault
+                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
+                : 'border-accent/40 bg-accent/10 text-accent'
+            }`}
+          >
+            <FontAwesomeIcon icon={faCalendarDays} className="text-[10px]" />
+            {rangeLabel}
+            <FontAwesomeIcon icon={faChevronDown} className="text-[10px] opacity-70" />
+          </span>
+          <span className="inline-flex min-w-[88px] items-center gap-2 rounded-2xl border border-[var(--border-glass)] px-3 py-2 text-[var(--text-muted)]">
+            {typeLabel}
+            <FontAwesomeIcon icon={faChevronDown} className="text-[10px] opacity-70" />
+          </span>
+          <span
+            className={`inline-flex min-w-[140px] items-center gap-2 rounded-2xl border px-3 py-2 ${
+              isCategoryDefault
+                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
+                : 'border-accent/40 bg-accent/10 text-accent'
+            }`}
+          >
+            <FontAwesomeIcon icon={faTag} className="text-[10px]" />
+            {categoryLabel}
+            <FontAwesomeIcon icon={faChevronDown} className="text-[10px] opacity-70" />
+          </span>
+          <span
+            className={`inline-flex min-w-[132px] items-center gap-2 rounded-2xl border px-3 py-2 ${
+              isSortDefault
+                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
+                : 'border-accent/40 bg-accent/10 text-accent'
+            }`}
+          >
+            <FontAwesomeIcon icon={faArrowsUpDown} className="text-[10px]" />
+            {sortLabel} · {directionLabel}
+            <FontAwesomeIcon icon={faChevronDown} className="text-[10px] opacity-70" />
+          </span>
+          <span
+            className={`inline-flex min-w-[120px] items-center gap-2 rounded-2xl border px-3 py-2 ${
+              isGroupDefault
+                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
+                : 'border-accent/40 bg-accent/10 text-accent'
+            }`}
+          >
+            <FontAwesomeIcon icon={faLayerGroup} className="text-[10px]" />
+            {groupLabel}
+            <FontAwesomeIcon icon={faChevronDown} className="text-[10px] opacity-70" />
+          </span>
         </button>
       </div>
 
