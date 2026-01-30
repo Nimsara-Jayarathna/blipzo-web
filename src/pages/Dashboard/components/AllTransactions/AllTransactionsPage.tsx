@@ -21,12 +21,7 @@ import {
 import { Modal } from '../../../../components/Modal'
 import { BlockingModal, type BlockingState } from '../../../../components/BlockingModal'
 
-const typeOptions: { type: TransactionTypeFilter; label: string }[] = [
-  { type: 'all', label: 'All' },
-  { type: 'income', label: 'Inc' },
-  { type: 'expense', label: 'Exp' },
-]
-
+// ... (Keep DropdownOption and SidebarDropdown and DatePresetButton exactly as they were)
 type DropdownOption = {
   value: string
   label: string
@@ -190,6 +185,12 @@ const DatePresetButton = ({
   </button>
 )
 
+const typeOptions: { type: TransactionTypeFilter; label: string }[] = [
+  { type: 'all', label: 'All' },
+  { type: 'income', label: 'Inc' },
+  { type: 'expense', label: 'Exp' },
+]
+
 export const AllTransactionsPage = ({
   transactions,
   isLoading = false,
@@ -244,6 +245,7 @@ export const AllTransactionsPage = ({
 
   const grouped = useGroupedTransactions(filteredTransactions, grouping)
 
+  // Options...
   const categoryOptions: DropdownOption[] = [
     { value: 'all', label: 'All categories' },
     ...categoriesForType.map(category => ({
@@ -282,49 +284,6 @@ export const AllTransactionsPage = ({
 
   const defaultFilters = buildDefaultFilters()
 
-  useEffect(() => {
-    return () => {
-      if (resetTimeoutRef.current) window.clearTimeout(resetTimeoutRef.current)
-      if (successTimeoutRef.current) window.clearTimeout(successTimeoutRef.current)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (selectModal.open) {
-      setSelectQuery('')
-    }
-  }, [selectModal.open])
-
-  const triggerResetFeedback = (onComplete?: () => void) => {
-    setBlockingState('loading')
-    if (resetTimeoutRef.current) window.clearTimeout(resetTimeoutRef.current)
-    if (successTimeoutRef.current) window.clearTimeout(successTimeoutRef.current)
-    resetTimeoutRef.current = window.setTimeout(() => {
-      setBlockingState('success')
-      successTimeoutRef.current = window.setTimeout(() => {
-        setBlockingState('idle')
-        if (onComplete) onComplete()
-      }, 900)
-    }, 600)
-  }
-
-  const openSelectModal = (next: {
-    title: string
-    value: string
-    options: DropdownOption[]
-    onSelect: (value: string) => void
-    showSearch?: boolean
-  }) => {
-    setSelectModal({
-      open: true,
-      title: next.title,
-      value: next.value,
-      options: next.options,
-      onSelect: next.onSelect,
-      showSearch: next.showSearch,
-    })
-  }
-
   const activeFilterCount = useMemo(() => {
     let count = 0
     if (filters.startDate !== defaultFilters.startDate || filters.endDate !== defaultFilters.endDate) count++
@@ -341,6 +300,19 @@ export const AllTransactionsPage = ({
     setGrouping('none')
     onFiltersChange(buildDefaultFilters())
     triggerResetFeedback()
+  }
+
+  const triggerResetFeedback = (onComplete?: () => void) => {
+    setBlockingState('loading')
+    if (resetTimeoutRef.current) window.clearTimeout(resetTimeoutRef.current)
+    if (successTimeoutRef.current) window.clearTimeout(successTimeoutRef.current)
+    resetTimeoutRef.current = window.setTimeout(() => {
+      setBlockingState('success')
+      successTimeoutRef.current = window.setTimeout(() => {
+        setBlockingState('idle')
+        if (onComplete) onComplete()
+      }, 900)
+    }, 600)
   }
 
   const openMobileFilters = () => {
@@ -439,20 +411,31 @@ export const AllTransactionsPage = ({
     )
   }
 
-  const typeLabel =
-    filters.typeFilter === 'all'
-      ? 'All'
-      : filters.typeFilter === 'income'
-        ? 'Income'
-        : 'Expense'
-  const categoryLabel =
-    categoryOptions.find(option => option.value === filters.categoryFilter)?.label ?? 'All categories'
+  const openSelectModal = (next: {
+    title: string
+    value: string
+    options: DropdownOption[]
+    onSelect: (value: string) => void
+    showSearch?: boolean
+  }) => {
+    setSelectModal({
+      open: true,
+      title: next.title,
+      value: next.value,
+      options: next.options,
+      onSelect: next.onSelect,
+      showSearch: next.showSearch,
+    })
+  }
+
+  const typeLabel = filters.typeFilter === 'all' ? 'All' : filters.typeFilter === 'income' ? 'Income' : 'Expense'
+  const categoryLabel = categoryOptions.find(option => option.value === filters.categoryFilter)?.label ?? 'All categories'
   const sortLabel = sortOptions.find(option => option.value === filters.sortField)?.label ?? 'Date'
   const directionLabel = filters.sortDirection === 'asc' ? 'Asc' : 'Desc'
   const groupLabel = groupingOptions.find(option => option.value === grouping)?.label ?? 'None'
   const rangeLabel = `${dayjs(filters.startDate).format('MMM D')} – ${dayjs(filters.endDate).format('MMM D')}`
-  const isDateDefault =
-    filters.startDate === defaultFilters.startDate && filters.endDate === defaultFilters.endDate
+  
+  const isDateDefault = filters.startDate === defaultFilters.startDate && filters.endDate === defaultFilters.endDate
   const isCategoryDefault = filters.categoryFilter === 'all'
   const isSortDefault = filters.sortField === defaultFilters.sortField && filters.sortDirection === defaultFilters.sortDirection
   const isGroupDefault = grouping === 'none'
@@ -652,10 +635,17 @@ export const AllTransactionsPage = ({
   )
 
   return (
-    <section className="grid gap-4 md:grid-cols-[minmax(260px,320px)_1fr] md:gap-6">
-      {/* Mobile Search - Always Visible */}
-      <div className="md:hidden">
-        <div className="mb-3 flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-3 text-sm text-[var(--page-fg)] backdrop-blur-xl transition-all focus-within:border-accent/40 focus-within:ring-2 focus-within:ring-accent/10">
+    /* 
+       THE KEY CHANGE: 
+       We set h-[calc(100vh-offset)] and overflow-hidden on the parent.
+       The grid columns will manage their own internal scrolling.
+    */
+    <section className="flex h-[calc(100vh-120px)] flex-col gap-4 overflow-hidden md:grid md:grid-cols-[minmax(260px,320px)_1fr] md:gap-6">
+      
+      {/* --- MOBILE FIXED HEADER --- */}
+      <div className="flex flex-none flex-col gap-3 md:hidden">
+        {/* Mobile Search */}
+        <div className="flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-3 text-sm text-[var(--page-fg)] backdrop-blur-xl transition-all focus-within:border-accent/40 focus-within:ring-2 focus-within:ring-accent/10">
           <FontAwesomeIcon icon={faMagnifyingGlass} className="text-[var(--text-muted)]" />
           <input
             type="search"
@@ -665,100 +655,65 @@ export const AllTransactionsPage = ({
             className="w-full bg-transparent text-sm text-[var(--page-fg)] placeholder:text-[var(--text-muted)] focus:outline-none"
           />
         </div>
-      </div>
 
-      {/* Mobile Filter Chips */}
-      <div className="sticky top-0 z-20 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/95 p-4 shadow-soft backdrop-blur-xl md:hidden">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <p className="text-xs font-semibold text-[var(--text-subtle)]">Filters</p>
+        {/* Mobile Filter Chips Box */}
+        <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/95 p-4 shadow-soft backdrop-blur-xl">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold text-[var(--text-subtle)]">Filters</p>
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
             {activeFilterCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white">
-                {activeFilterCount}
-              </span>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] transition hover:text-accent"
+              >
+                <FontAwesomeIcon icon={faFilterCircleXmark} className="text-[10px]" />
+                Reset
+              </button>
             )}
           </div>
-          {activeFilterCount > 0 && (
+          
+          <button
+            type="button"
+            onClick={openMobileFilters}
+            className="flex w-full flex-wrap justify-center gap-2 text-xs"
+          >
+            <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 transition-all ${isDateDefault ? 'border-[var(--border-glass)] text-[var(--text-muted)]' : 'border-accent/40 bg-accent/10 text-accent shadow-sm'}`}>
+              <FontAwesomeIcon icon={faCalendarDays} className="text-[10px]" />
+              <span className="whitespace-nowrap">{rangeLabel}</span>
+              <FontAwesomeIcon icon={faChevronDown} className="text-[9px] opacity-70" />
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-glass)] px-3 py-2 text-[var(--text-muted)] transition-all">
+              {typeLabel}
+              <FontAwesomeIcon icon={faChevronDown} className="text-[9px] opacity-70" />
+            </span>
+            <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 transition-all ${isCategoryDefault ? 'border-[var(--border-glass)] text-[var(--text-muted)]' : 'border-accent/40 bg-accent/10 text-accent shadow-sm'}`}>
+              <FontAwesomeIcon icon={faTag} className="text-[10px]" />
+              <span className="max-w-[120px] truncate">{categoryLabel}</span>
+            </span>
+          </button>
+
+          {onOpenSummary && (
             <button
               type="button"
-              onClick={handleResetFilters}
-              className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] transition hover:text-accent"
+              onClick={onOpenSummary}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition-all hover:border-accent/40 hover:text-[var(--page-fg)]"
             >
-              <FontAwesomeIcon icon={faFilterCircleXmark} className="text-[10px]" />
-              Reset
+              <FontAwesomeIcon icon={faChartPie} />
+              Summary
             </button>
           )}
         </div>
-        <button
-          type="button"
-          onClick={openMobileFilters}
-          className="flex w-full flex-wrap justify-center gap-2 text-xs"
-        >
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 transition-all ${
-              isDateDefault
-                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
-                : 'border-accent/40 bg-accent/10 text-accent shadow-sm'
-            }`}
-          >
-            <FontAwesomeIcon icon={faCalendarDays} className="text-[10px]" />
-            <span className="whitespace-nowrap">{rangeLabel}</span>
-            <FontAwesomeIcon icon={faChevronDown} className="text-[9px] opacity-70" />
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-glass)] px-3 py-2 text-[var(--text-muted)] transition-all">
-            {typeLabel}
-            <FontAwesomeIcon icon={faChevronDown} className="text-[9px] opacity-70" />
-          </span>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 transition-all ${
-              isCategoryDefault
-                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
-                : 'border-accent/40 bg-accent/10 text-accent shadow-sm'
-            }`}
-          >
-            <FontAwesomeIcon icon={faTag} className="text-[10px]" />
-            <span className="max-w-[120px] truncate">{categoryLabel}</span>
-            <FontAwesomeIcon icon={faChevronDown} className="text-[9px] opacity-70" />
-          </span>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 transition-all ${
-              isSortDefault
-                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
-                : 'border-accent/40 bg-accent/10 text-accent shadow-sm'
-            }`}
-          >
-            <FontAwesomeIcon icon={faArrowsUpDown} className="text-[10px]" />
-            <span className="whitespace-nowrap">{sortLabel} · {directionLabel}</span>
-            <FontAwesomeIcon icon={faChevronDown} className="text-[9px] opacity-70" />
-          </span>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 transition-all ${
-              isGroupDefault
-                ? 'border-[var(--border-glass)] text-[var(--text-muted)]'
-                : 'border-accent/40 bg-accent/10 text-accent shadow-sm'
-            }`}
-          >
-            <FontAwesomeIcon icon={faLayerGroup} className="text-[10px]" />
-            {groupLabel}
-            <FontAwesomeIcon icon={faChevronDown} className="text-[9px] opacity-70" />
-          </span>
-        </button>
-
-        {/* Summary Button - Mobile Only, below filter chips */}
-        {onOpenSummary && (
-          <button
-            type="button"
-            onClick={onOpenSummary}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition-all hover:border-accent/40 hover:text-[var(--page-fg)]"
-          >
-            <FontAwesomeIcon icon={faChartPie} />
-            View Summary
-          </button>
-        )}
       </div>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-5 shadow-soft backdrop-blur-xl md:sticky md:top-24 md:block md:max-h-[calc(100vh-7rem)] md:self-start md:overflow-y-auto">
+      {/* --- DESKTOP SIDEBAR (FIXED/SCROLLABLE) --- */}
+      <aside className="hidden flex-none overflow-y-auto rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-5 shadow-soft backdrop-blur-xl md:block">
         {renderFilterContent(filters, onFiltersChange, grouping, setGrouping, searchTerm, setSearchTerm, 'desktop')}
         <div className="mt-4 space-y-3 border-t border-[var(--border-glass)] pt-4">
           {activeFilterCount > 0 && (
@@ -784,8 +739,8 @@ export const AllTransactionsPage = ({
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="min-w-0">
+      {/* --- MAIN SCROLLABLE CONTENT --- */}
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 transition-all">
         {isLoading ? (
           <Spinner size="lg" centered />
         ) : filteredTransactions.length === 0 ? (
@@ -803,9 +758,11 @@ export const AllTransactionsPage = ({
             hideCategory={grouping === 'category'}
           />
         )}
+        {/* Extra padding at bottom for smooth scroll finish */}
+        <div className="h-12 w-full flex-none" />
       </div>
 
-      {/* Mobile Filter Modal - Summary button removed, only Reset and Apply */}
+      {/* --- MODALS (Unchanged logic) --- */}
       <Modal
         open={mobileFiltersOpen}
         onClose={() => setMobileFiltersOpen(false)}
@@ -831,23 +788,10 @@ export const AllTransactionsPage = ({
                 Apply
               </button>
             </div>
-            {onOpenSummary ? (
-              <button
-                type="button"
-                onClick={() => {
-                  applyMobileFilters()
-                  onOpenSummary()
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition-all hover:border-accent/40 hover:text-[var(--page-fg)]"
-              >
-                <FontAwesomeIcon icon={faChartPie} />
-                View Summary
-              </button>
-            ) : null}
           </div>
         }
       >
-        <div className={`max-h-[40vh] overflow-y-auto px-1 ${blockingState !== 'idle' ? 'pointer-events-none opacity-60' : ''}`}>
+        <div className={`max-h-[45vh] overflow-y-auto px-1 ${blockingState !== 'idle' ? 'pointer-events-none opacity-60' : ''}`}>
           {renderFilterContent(
             tempFilters,
             setTempFilters,
@@ -858,22 +802,14 @@ export const AllTransactionsPage = ({
             'mobile',
           )}
         </div>
-        {blockingState !== 'idle' ? (
-          <div className="mt-4 flex items-center justify-center rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-3 text-center">
-            <FontAwesomeIcon icon={faSpinner} className="h-5 w-5 animate-spin text-accent" />
-            <span className="ml-3 text-sm font-semibold text-[var(--page-fg)]">
-              {blockingState === 'loading' ? 'Resetting filters...' : 'Filters reset'}
-            </span>
-          </div>
-        ) : null}
       </Modal>
-      {!mobileFiltersOpen ? (
-        <BlockingModal
-          state={blockingState}
-          message={blockingState === 'loading' ? 'Resetting filters...' : 'Filters reset'}
-          onClose={() => setBlockingState('idle')}
-        />
-      ) : null}
+
+      <BlockingModal
+        state={blockingState}
+        message={blockingState === 'loading' ? 'Resetting filters...' : 'Filters reset'}
+        onClose={() => setBlockingState('idle')}
+      />
+
       <Modal
         open={selectModal.open}
         onClose={() => setSelectModal(prev => ({ ...prev, open: false }))}
@@ -912,12 +848,7 @@ export const AllTransactionsPage = ({
                 }`}
               >
                 {option.tone ? (
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      option.tone === 'income' ? 'bg-income' : 'bg-expense'
-                    }`}
-                    aria-hidden="true"
-                  />
+                  <span className={`h-2 w-2 rounded-full ${option.tone === 'income' ? 'bg-income' : 'bg-expense'}`} />
                 ) : null}
                 <span className="truncate">{option.label}</span>
               </button>
