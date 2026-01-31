@@ -18,7 +18,6 @@ import {
 import { Modal } from '../../../../components/Modal'
 import { BlockingModal, type BlockingState } from '../../../../components/BlockingModal'
 
-// ... (Keep DropdownOption and SidebarDropdown and DatePresetButton exactly as they were)
 type DropdownOption = {
   value: string
   label: string
@@ -242,7 +241,6 @@ export const AllTransactionsPage = ({
 
   const grouped = useGroupedTransactions(filteredTransactions, grouping)
 
-  // Options...
   const categoryOptions: DropdownOption[] = [
     { value: 'all', label: 'All categories' },
     ...categoriesForType.map(category => ({
@@ -627,16 +625,10 @@ export const AllTransactionsPage = ({
   )
 
   return (
-    /* 
-       THE KEY CHANGE: 
-       We set h-[calc(100vh-offset)] and overflow-hidden on the parent.
-       The grid columns will manage their own internal scrolling.
-    */
-    <section className="flex h-[calc(100vh-120px)] flex-col gap-4 overflow-hidden md:grid md:grid-cols-[minmax(260px,320px)_1fr] md:gap-6">
+    <section className="flex h-[calc(100vh-120px)] flex-col gap-4 overflow-hidden md:grid md:grid-cols-[minmax(260px,320px)_1fr] md:items-stretch md:gap-6">
       
       {/* --- MOBILE FIXED HEADER --- */}
       <div className="flex flex-none flex-col gap-3 md:hidden">
-        {/* Mobile Search */}
         <div className="flex items-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-3 text-sm text-[var(--page-fg)] backdrop-blur-xl transition-all focus-within:border-accent/40 focus-within:ring-2 focus-within:ring-accent/10">
           <FontAwesomeIcon icon={faMagnifyingGlass} className="text-[var(--text-muted)]" />
           <input
@@ -648,7 +640,6 @@ export const AllTransactionsPage = ({
           />
         </div>
 
-        {/* Mobile Filter Chips Box */}
         <div className="rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/95 p-4 shadow-soft backdrop-blur-xl">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -704,30 +695,37 @@ export const AllTransactionsPage = ({
         </div>
       </div>
 
-      {/* --- DESKTOP SIDEBAR (FIXED/SCROLLABLE) --- */}
-      <aside className="hidden flex-none overflow-y-auto rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-5 shadow-soft backdrop-blur-xl md:block">
-        {renderFilterContent(filters, onFiltersChange, grouping, setGrouping, searchTerm, setSearchTerm, 'desktop')}
-        <div className="mt-4 space-y-3 border-t border-[var(--border-glass)] pt-4">
-          {activeFilterCount > 0 && (
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition-all hover:border-accent/40 hover:text-accent"
-            >
-              <FontAwesomeIcon icon={faFilterCircleXmark} />
-              Reset Filters
-            </button>
-          )}
-          {onOpenSummary && (
-            <button
-              type="button"
-              onClick={onOpenSummary}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition-all hover:border-accent/40 hover:text-[var(--page-fg)]"
-            >
-              <FontAwesomeIcon icon={faChartPie} />
-              Summary
-            </button>
-          )}
+      {/* --- DESKTOP SIDEBAR --- */}
+      <aside className="hidden flex-none md:block md:h-full md:overflow-hidden">
+        <div className="flex h-full flex-col rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] p-5 shadow-soft backdrop-blur-xl">
+          {/* Scrollable filter content */}
+          <div className="flex-1 overflow-y-auto pr-1">
+            {renderFilterContent(filters, onFiltersChange, grouping, setGrouping, searchTerm, setSearchTerm, 'desktop')}
+          </div>
+          
+          {/* Fixed buttons at bottom */}
+          <div className="mt-4 flex-none space-y-3 border-t border-[var(--border-glass)] pt-4">
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition-all hover:border-accent/40 hover:text-accent"
+              >
+                <FontAwesomeIcon icon={faFilterCircleXmark} />
+                Reset Filters
+              </button>
+            )}
+            {onOpenSummary && (
+              <button
+                type="button"
+                onClick={onOpenSummary}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] transition-all hover:border-accent/40 hover:text-[var(--page-fg)]"
+              >
+                <FontAwesomeIcon icon={faChartPie} />
+                Summary
+              </button>
+            )}
+          </div>
         </div>
       </aside>
 
@@ -750,11 +748,9 @@ export const AllTransactionsPage = ({
             hideCategory={grouping === 'category'}
           />
         )}
-        {/* Extra padding at bottom for smooth scroll finish */}
-        <div className="h-12 w-full flex-none" />
       </div>
 
-      {/* --- MODALS (Unchanged logic) --- */}
+      {/* --- MODALS --- */}
       <Modal
         open={mobileFiltersOpen}
         onClose={() => setMobileFiltersOpen(false)}
