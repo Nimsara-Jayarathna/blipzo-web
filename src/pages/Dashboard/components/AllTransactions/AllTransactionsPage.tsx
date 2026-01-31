@@ -11,12 +11,9 @@ import {
   faCalendarDays,
   faChartPie,
   faChevronDown,
-  faLayerGroup,
   faMagnifyingGlass,
   faTag,
-  faArrowsUpDown,
   faFilterCircleXmark,
-  faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 import { Modal } from '../../../../components/Modal'
 import { BlockingModal, type BlockingState } from '../../../../components/BlockingModal'
@@ -430,15 +427,10 @@ export const AllTransactionsPage = ({
 
   const typeLabel = filters.typeFilter === 'all' ? 'All' : filters.typeFilter === 'income' ? 'Income' : 'Expense'
   const categoryLabel = categoryOptions.find(option => option.value === filters.categoryFilter)?.label ?? 'All categories'
-  const sortLabel = sortOptions.find(option => option.value === filters.sortField)?.label ?? 'Date'
-  const directionLabel = filters.sortDirection === 'asc' ? 'Asc' : 'Desc'
-  const groupLabel = groupingOptions.find(option => option.value === grouping)?.label ?? 'None'
   const rangeLabel = `${dayjs(filters.startDate).format('MMM D')} – ${dayjs(filters.endDate).format('MMM D')}`
   
   const isDateDefault = filters.startDate === defaultFilters.startDate && filters.endDate === defaultFilters.endDate
   const isCategoryDefault = filters.categoryFilter === 'all'
-  const isSortDefault = filters.sortField === defaultFilters.sortField && filters.sortDirection === defaultFilters.sortDirection
-  const isGroupDefault = grouping === 'none'
 
   const renderFilterContent = (
     activeFilters: typeof filters,
