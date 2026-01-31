@@ -174,7 +174,7 @@ export const AddCategoryModal = ({ open, onClose, categories, limit }: AddCatego
             onClick={onClose}
           >
             <motion.div
-              className="w-full rounded-t-2xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-2xl backdrop-blur-xl"
+              className="flex w-full flex-col rounded-t-2xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-2xl backdrop-blur-xl h-[calc(100vh-env(safe-area-inset-top))] overflow-y-auto"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}

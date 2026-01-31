@@ -74,7 +74,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       widthClassName="max-w-4xl"
       bodyScroll={false}
       bodyClassName="flex min-h-0 flex-1 flex-col"
-      panelClassName="flex max-h-[90vh] w-full flex-col md:h-[600px]"
+      panelClassName="flex h-[90vh] w-full flex-col md:h-[600px]"
     >
       <div className="flex min-h-0 flex-1 flex-col gap-6">
         <div className="hidden md:block">
