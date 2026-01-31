@@ -12,7 +12,7 @@ export const SecuritySettingsTab = () => {
 
     return (
         <>
-            <div className="space-y-4 md:space-y-6">
+            <div className="flex h-full min-h-0 flex-col space-y-4 overflow-y-auto md:space-y-6">
                 <section>
                     <div className="mb-4 hidden md:block md:mb-6">
                         <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Account Security</h2>

@@ -126,7 +126,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     }
 
     return (
-        <div className="relative flex h-full flex-col">
+        <div className="relative flex h-full min-h-0 flex-col">
             <div className="mb-4 flex shrink-0 flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
                 <div className="hidden md:block">
                     <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Categories</h2>
@@ -156,18 +156,20 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                     </div>
                 ) : null}
 
-                <div className={cardStyles.primary}>
-                    <CategoriesGrid
-                        isLoading={isLoading}
-                        categories={categories}
-                        limit={categoriesLimit}
-                        view="all"
-                        deleteMutation={{ isPending: isDeleting, variables: undefined }}
-                        resolveCategoryId={resolveCategoryId}
-                        onDelete={handleDelete}
-                        onSetDefault={handleSetDefault}
-                        isSettingDefault={isSettingDefault}
-                    />
+                <div className={`${cardStyles.primary} flex min-h-0 flex-1 flex-col overflow-hidden`}>
+                    <div className="min-h-0 flex-1">
+                        <CategoriesGrid
+                            isLoading={isLoading}
+                            categories={categories}
+                            limit={categoriesLimit}
+                            view="all"
+                            deleteMutation={{ isPending: isDeleting, variables: undefined }}
+                            resolveCategoryId={resolveCategoryId}
+                            onDelete={handleDelete}
+                            onSetDefault={handleSetDefault}
+                            isSettingDefault={isSettingDefault}
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -50,7 +50,7 @@ export const ProfileSettingsTab = () => {
     }
 
     return (
-        <div className="space-y-4 md:space-y-6">
+        <div className="flex h-full min-h-0 flex-col space-y-4 overflow-y-auto md:space-y-6">
             {blockingModal}
             <section>
                 <div className="mb-4 hidden md:block md:mb-6">

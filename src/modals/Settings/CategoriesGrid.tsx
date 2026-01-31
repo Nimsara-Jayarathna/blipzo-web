@@ -55,12 +55,12 @@ export const CategoriesGrid = ({
     : groupedAll.filter(item => (view === 'income' ? item.isIncome : !item.isIncome))
 
   return (
-    <div className="grid gap-6 sm:gap-8 sm:overflow-hidden sm:grid-cols-2">
+    <div className="grid min-h-0 h-full gap-6 sm:gap-8 sm:overflow-hidden sm:grid-cols-2">
       {grouped.map(column => {
         const countLabel = typeof limit === 'number' ? `${column.items.length}/${limit}` : `${column.items.length}`
 
         return (
-          <div key={column.title} className="flex flex-col gap-4 sm:h-full sm:overflow-hidden">
+          <div key={column.title} className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
             <div className="flex shrink-0 items-end justify-between border-b border-[var(--border-glass)] pb-2">
               <div>
                 <h3 className="font-semibold text-[var(--page-fg)]">{column.title}</h3>
@@ -71,7 +71,7 @@ export const CategoriesGrid = ({
               </span>
             </div>
 
-            <ul className="flex-1 space-y-1 overflow-visible pr-0 sm:overflow-y-auto sm:pr-2 sm:scrollbar-thin sm:scrollbar-thumb-accent/10 sm:scrollbar-track-transparent">
+            <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-0 sm:pr-2 sm:scrollbar-thin sm:scrollbar-thumb-accent/10 sm:scrollbar-track-transparent">
               {column.items.length ? (
                 column.items.map(category => {
                   const categoryId = resolveCategoryId(category)
