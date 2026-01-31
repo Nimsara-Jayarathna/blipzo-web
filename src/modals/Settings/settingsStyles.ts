@@ -16,7 +16,7 @@ export const cardStyles = {
 
 export const inputStyles = {
   primary:
-    'w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 md:py-2.5 text-sm text-[var(--page-fg)] outline-none transition-all focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10',
+    'w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 md:py-2.5 text-sm text-[var(--page-fg)] outline-none transition-all focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10',
 } as const
 
 export const tabStyles = {
