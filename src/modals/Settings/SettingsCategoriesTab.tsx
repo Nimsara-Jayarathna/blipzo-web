@@ -127,7 +127,7 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     return (
         <div className="relative flex h-full flex-col">
             <div className="mb-4 flex shrink-0 flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
-                <div>
+                <div className="hidden md:block">
                     <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Categories</h2>
                     <p className="text-sm text-[var(--text-muted)]">Manage your income and expense categories</p>
                 </div>

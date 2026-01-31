@@ -21,6 +21,25 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
   const [isAddCategoryOpen, setAddCategoryOpen] = useState(false)
 
+  const tabMeta: Record<SettingsTab, { title: string; description: string }> = {
+    profile: {
+      title: 'Personal Profile',
+      description: 'Update your personal information.',
+    },
+    categories: {
+      title: 'Categories',
+      description: 'Manage your income and expense categories',
+    },
+    currency: {
+      title: 'Currency Preferences',
+      description: 'Choose your preferred currency for display.',
+    },
+    security: {
+      title: 'Account Security',
+      description: 'Manage your account credentials and security preferences.',
+    },
+  }
+
   const tabs: { id: SettingsTab; label: string; icon: IconDefinition }[] = [
     {
       id: 'profile',
@@ -69,28 +88,46 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
     <Modal
       open={open}
       onClose={onClose}
-      title="Settings"
-      subtitle="Manage your account preferences."
       widthClassName="max-w-4xl"
+      showCloseButton={false}
       bodyScroll={false}
       bodyClassName="flex min-h-0 flex-1 flex-col"
       panelClassName="flex h-[90vh] w-full flex-col md:h-[600px]"
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-6">
-        <div className="hidden md:block">
-          <TabNavigation
-            tabs={tabs.map(tab => ({
-              id: tab.id,
-              label: tab.label,
-              icon: <FontAwesomeIcon icon={tab.icon} className="h-4 w-4" />,
-            }))}
-            activeTab={activeTab}
-            onChange={setActiveTab}
-          />
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex items-start justify-between gap-4 px-6 pt-6 md:px-8 md:pt-8">
+          <div className="min-w-0 flex-1">
+            <div className="hidden md:block">
+              <TabNavigation
+                tabs={tabs.map(tab => ({
+                  id: tab.id,
+                  label: tab.label,
+                  icon: <FontAwesomeIcon icon={tab.icon} className="h-4 w-4" />,
+                }))}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+              />
+            </div>
+            <div className="md:hidden">
+              <h2 className="text-lg font-semibold text-[var(--page-fg)]">
+                {tabMeta[activeTab].title}
+              </h2>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">
+                {tabMeta[activeTab].description}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
+          >
+            Close
+          </button>
         </div>
 
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-[calc(env(safe-area-inset-bottom)+96px)] pt-6 md:px-8 md:pb-8 md:pt-8">
             <div className="mx-auto w-full max-w-[700px]">
               <AnimatePresence mode="wait">
                 <motion.div

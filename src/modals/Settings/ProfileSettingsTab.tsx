@@ -53,7 +53,7 @@ export const ProfileSettingsTab = () => {
         <div className="space-y-4 md:space-y-6">
             {blockingModal}
             <section>
-                <div className="mb-4 md:mb-6">
+                <div className="mb-4 hidden md:block md:mb-6">
                     <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Personal Profile</h2>
                     <p className="text-sm text-[var(--text-muted)]">Update your personal information.</p>
                 </div>
