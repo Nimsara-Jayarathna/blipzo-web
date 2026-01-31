@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
@@ -180,12 +181,17 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                 </div>
             )}
 
-            <AddCategoryModal
-                open={isAddCategoryOpen}
-                onClose={onAddCategoryClose}
-                categories={categories}
-                limit={categoriesLimit}
-            />
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <AddCategoryModal
+                        open={isAddCategoryOpen}
+                        onClose={onAddCategoryClose}
+                        categories={categories}
+                        limit={categoriesLimit}
+                    />,
+                    document.body
+                )
+                : null}
             {deleteModal}
             {defaultModal}
         </div>
