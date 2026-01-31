@@ -1,4 +1,4 @@
-# Blipzo Web (Mobile)
+# Blipzo Web
 
 React + Vite + Tailwind + TypeScript frontend for the Blipzo expense tracker. It uses React Query for data fetching, Zustand for auth state, and cookie-based authentication against the Blipzo API.
 
