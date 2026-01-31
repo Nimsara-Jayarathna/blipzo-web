@@ -1,4 +1,3 @@
-
 import { Spinner } from '../../components/Spinner'
 import type { Category } from '../../types'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -86,7 +85,7 @@ export const CategoriesGrid = ({
                       key={categoryId}
                       className="group flex items-center justify-between rounded-xl px-3 py-3 transition hover:bg-[var(--surface-glass-thick)] sm:py-2"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <span
                           className={`flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold sm:h-8 sm:w-8 ${column.isIncome
                             ? 'bg-emerald-500/10 text-emerald-500'
@@ -95,8 +94,10 @@ export const CategoriesGrid = ({
                         >
                           {initials}
                         </span>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-[var(--page-fg)]">{category.name}</span>
+                        <div className="min-w-0 flex flex-col">
+                          <span className="truncate text-sm font-medium text-[var(--page-fg)]" title={category.name}>
+                            {category.name}
+                          </span>
                           {category.isDefault && (
                             <span className="text-[10px] text-[var(--text-muted)]">Default</span>
                           )}
@@ -108,11 +109,12 @@ export const CategoriesGrid = ({
                           type="button"
                           onClick={() => onSetDefault(category)}
                           disabled={isDefault || isSettingDefault}
-                          className={`flex h-9 w-9 items-center justify-center rounded-full transition sm:h-8 sm:w-8 ${isDefault
+                          className={`flex h-11 w-11 items-center justify-center rounded-full transition md:h-9 md:w-9 ${isDefault
                             ? 'text-yellow-400 opacity-100'
                             : 'text-[var(--text-subtle)] hover:bg-[var(--surface-glass)] hover:text-yellow-400'
                             } disabled:cursor-not-allowed`}
                           title={isDefault ? 'Default category' : 'Set as default'}
+                          aria-label={isDefault ? 'Default category' : 'Set as default'}
                         >
                           <FontAwesomeIcon icon={faStar} className={isDefault ? 'text-sm' : 'text-xs'} />
                         </button>
@@ -123,11 +125,12 @@ export const CategoriesGrid = ({
                             if (canDelete) onDelete(category)
                           }}
                           disabled={isDeleting || !canDelete}
-                          className={`flex h-9 w-9 items-center justify-center rounded-full transition sm:h-8 sm:w-8 ${canDelete
+                          className={`flex h-11 w-11 items-center justify-center rounded-full transition md:h-9 md:w-9 ${canDelete
                             ? 'text-[var(--text-subtle)] hover:bg-red-500/10 hover:text-red-500'
                             : 'cursor-not-allowed text-[var(--text-subtle)] opacity-50'
                             }`}
                           title={canDelete ? 'Delete category' : 'Cannot delete default'}
+                          aria-label={canDelete ? 'Delete category' : 'Cannot delete default'}
                         >
                           {isDeleting ? (
                             <Spinner size="sm" />

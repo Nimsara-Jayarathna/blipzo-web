@@ -4,6 +4,7 @@ import { InternalOverlay } from './InternalOverlay'
 import { InlineToast } from './InlineToast'
 import { Spinner } from '../../components/Spinner'
 import { changePassword } from '../../api/auth'
+import { buttonStyles, inputStyles } from './settingsStyles'
 
 interface ChangePasswordOverlayProps {
     open: boolean
@@ -78,7 +79,7 @@ export const ChangePasswordOverlay = ({ open, onClose }: ChangePasswordOverlayPr
                         placeholder="Current Password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--page-fg)] outline-none transition-all focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10"
+                        className={inputStyles.primary}
                     />
                 </div>
                 <div className="space-y-2">
@@ -87,14 +88,14 @@ export const ChangePasswordOverlay = ({ open, onClose }: ChangePasswordOverlayPr
                         placeholder="New Password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--page-fg)] outline-none transition-all focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10"
+                        className={inputStyles.primary}
                     />
                     <input
                         type="password"
                         placeholder="Confirm New Password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--page-fg)] outline-none transition-all focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10"
+                        className={inputStyles.primary}
                     />
                 </div>
 
@@ -102,7 +103,7 @@ export const ChangePasswordOverlay = ({ open, onClose }: ChangePasswordOverlayPr
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting || !isFormValid}
-                        className="w-full rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                        className={`w-full ${buttonStyles.primary} disabled:hover:scale-100`}
                     >
                         {isSubmitting ? <Spinner size="sm" /> : 'Update Password'}
                     </button>

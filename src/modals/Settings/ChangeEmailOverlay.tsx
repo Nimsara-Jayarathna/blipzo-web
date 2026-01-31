@@ -7,6 +7,7 @@ import { Spinner } from '../../components/Spinner'
 import { OtpInput } from '../../components/OtpInput'
 import { useAuth } from '../../hooks/useAuth'
 import { emailChangeInit, emailChangeVerifyCurrent, emailChangeRequestNew, emailChangeConfirm } from '../../api/auth'
+import { buttonStyles, inputStyles } from './settingsStyles'
 
 type EmailChangeStep = 'idle' | 'verify-current' | 'enter-new' | 'sending-new' | 'verify-new'
 
@@ -219,7 +220,7 @@ export const ChangeEmailOverlay = ({ open, onClose }: ChangeEmailOverlayProps) =
                             placeholder="new@email.com"
                             value={newEmail}
                             onChange={(e) => setNewEmail(e.target.value)}
-                            className="mb-4 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--page-fg)] outline-none transition-all focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10"
+                            className={`${inputStyles.primary} mb-4`}
                             autoFocus
                         />
                     </div>
@@ -244,7 +245,7 @@ export const ChangeEmailOverlay = ({ open, onClose }: ChangeEmailOverlayProps) =
                         <button
                             onClick={handleAction}
                             disabled={isGlobalLoading || !isEmailValid}
-                            className="w-full rounded-xl bg-[#3498db] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                            className={`w-full ${buttonStyles.primary} disabled:hover:scale-100`}
                         >
                             {isGlobalLoading ? <Spinner size="sm" /> : 'Continue'}
                         </button>

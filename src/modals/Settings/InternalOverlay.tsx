@@ -13,24 +13,16 @@ export const InternalOverlay = ({ open, onClose, title, children }: InternalOver
         <AnimatePresence>
             {open ? (
                 <motion.div
-                    className="absolute inset-0 z-30 flex items-center justify-center p-4"
+                    className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
+                    onClick={onClose}
                 >
-                    {/* Backdrop - dims the content but keeps header/nav visible */}
-                    <motion.div
-                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                    />
-
                     {/* Overlay Content */}
                     <motion.div
-                        className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-6 shadow-2xl backdrop-blur-xl"
+                        className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-6 shadow-2xl backdrop-blur-xl"
                         initial={{ y: 20, opacity: 0, scale: 0.95 }}
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: 10, opacity: 0, scale: 0.98 }}

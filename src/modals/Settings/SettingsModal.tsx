@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { SettingsCategoriesTab } from './SettingsCategoriesTab'
 import { CurrencySettingsTab } from './CurrencySettingsTab'
@@ -7,6 +7,8 @@ import { ProfileSettingsTab } from './ProfileSettingsTab'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCoins, faTags, faShieldHalved, faUser } from '@fortawesome/free-solid-svg-icons'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
+import { AnimatePresence, motion } from 'framer-motion'
+import { TabNavigation } from '../../components/TabNavigation'
 
 interface SettingsModalProps {
   open: boolean
@@ -42,92 +44,100 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
     },
   ]
 
+  const activeContent = useMemo(() => {
+    switch (activeTab) {
+      case 'profile':
+        return <ProfileSettingsTab />
+      case 'categories':
+        return (
+          <SettingsCategoriesTab
+            isAddCategoryOpen={isAddCategoryOpen}
+            onAddCategoryClose={() => setAddCategoryOpen(false)}
+            onAddCategoryOpen={() => setAddCategoryOpen(true)}
+          />
+        )
+      case 'currency':
+        return <CurrencySettingsTab />
+      case 'security':
+        return <SecuritySettingsTab />
+      default:
+        return null
+    }
+  }, [activeTab, isAddCategoryOpen])
+
   return (
     <Modal
       open={open}
       onClose={onClose}
       title="Settings"
+      subtitle="Manage your account preferences."
       widthClassName="max-w-4xl"
-      bodyScroll
-      bodyClassName="flex-1 max-h-none overflow-y-auto"
-      containerClassName="items-start p-2 sm:items-center sm:p-6"
-      panelClassName="flex max-h-[90vh] w-[calc(100vw-16px)] flex-col rounded-2xl px-4 pb-3 pt-4 sm:h-auto sm:max-h-[90vh] sm:w-full sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10 box-border"
+      bodyScroll={false}
+      bodyClassName="flex min-h-0 flex-1 flex-col"
+      panelClassName="flex max-h-[90vh] w-full flex-col md:h-[600px]"
     >
-      {/* Mobile: Vertical sidebar (existing layout) */}
-      <div className="flex min-h-0 flex-col gap-4 md:hidden">
-        <nav className="flex w-full gap-2 overflow-x-auto pb-2 [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all ${activeTab === tab.id
-                  ? 'bg-[var(--surface-glass-thick)] text-[var(--accent)] border-[var(--border-glass)] shadow-soft'
-                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass-thick)] hover:text-[var(--page-fg)]'
-                }`}
-            >
-              <FontAwesomeIcon icon={tab.icon} className={activeTab === tab.id ? 'text-[var(--accent)]' : ''} />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+      <div className="flex min-h-0 flex-1 flex-col gap-6">
+        <div className="hidden md:block">
+          <TabNavigation
+            tabs={tabs.map(tab => ({
+              id: tab.id,
+              label: tab.label,
+              icon: <FontAwesomeIcon icon={tab.icon} className="h-4 w-4" />,
+            }))}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+          />
+        </div>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-0 rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
-          <div className="flex-1 overflow-y-auto pr-0 sm:pr-1">
-            {activeTab === 'profile' ? (
-              <ProfileSettingsTab />
-            ) : activeTab === 'categories' ? (
-              <SettingsCategoriesTab
-                isAddCategoryOpen={isAddCategoryOpen}
-                onAddCategoryClose={() => setAddCategoryOpen(false)}
-                onAddCategoryOpen={() => setAddCategoryOpen(true)}
-              />
-            ) : activeTab === 'currency' ? (
-              <CurrencySettingsTab />
-            ) : activeTab === 'security' ? (
-              <SecuritySettingsTab />
-            ) : null}
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[700px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="relative min-h-full"
+                >
+                  {activeContent}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Desktop: Horizontal navigation with glassmorphism */}
-      <div className="hidden md:flex md:min-h-0 md:flex-col md:gap-6">
-        {/* Horizontal Top Navigation */}
-        <nav className="flex items-center justify-center gap-3 rounded-2xl border border-[var(--border-glass)] bg-[rgba(255,255,255,0.4)] dark:bg-[rgba(15,23,42,0.5)] p-2 backdrop-blur-[12px]">
-          {tabs.map((tab) => (
+      <nav
+        aria-label="Settings sections"
+        className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4 border-t border-[var(--border-glass)] bg-[var(--surface-glass)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)] md:hidden"
+      >
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.id
+          return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${activeTab === tab.id
-                  ? 'bg-white dark:bg-[rgba(255,255,255,0.15)] text-[var(--accent)] shadow-[0_0_20px_rgba(59,130,246,0.15)] border border-[rgba(255,255,255,0.3)]'
-                  : 'text-[var(--text-muted)] hover:bg-[rgba(255,255,255,0.2)] dark:hover:bg-[rgba(255,255,255,0.1)] hover:text-[var(--page-fg)]'
-                }`}
+              className="flex flex-col items-center gap-1 py-3 text-[var(--text-muted)]"
+              aria-current={isActive ? 'page' : undefined}
             >
-              <FontAwesomeIcon icon={tab.icon} className={activeTab === tab.id ? 'text-[var(--accent)]' : ''} />
-              {tab.label}
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-full transition ${isActive
+                  ? 'bg-accent/15 text-accent ring-1 ring-accent/30'
+                  : 'text-[var(--text-muted)]'
+                  }`}
+              >
+                <FontAwesomeIcon icon={tab.icon} className="h-4 w-4" />
+              </span>
+              <span className={`text-xs font-medium ${isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`}>
+                {tab.label}
+              </span>
             </button>
-          ))}
-        </nav>
-
-        {/* Centered Content Area with relative positioning for overlays */}
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="mx-auto w-full max-w-[600px] flex-1 overflow-y-auto rounded-3xl border border-[var(--border-glass)] bg-[var(--surface-glass)]/30 p-6">
-            {activeTab === 'profile' ? (
-              <ProfileSettingsTab />
-            ) : activeTab === 'categories' ? (
-              <SettingsCategoriesTab
-                isAddCategoryOpen={isAddCategoryOpen}
-                onAddCategoryClose={() => setAddCategoryOpen(false)}
-                onAddCategoryOpen={() => setAddCategoryOpen(true)}
-              />
-            ) : activeTab === 'currency' ? (
-              <CurrencySettingsTab />
-            ) : activeTab === 'security' ? (
-              <SecuritySettingsTab />
-            ) : null}
-          </div>
-        </div>
-      </div>
+          )
+        })}
+      </nav>
     </Modal>
   )
 }
