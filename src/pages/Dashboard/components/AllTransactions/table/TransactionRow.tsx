@@ -1,6 +1,8 @@
 import type { Transaction } from '../../../../../types'
 import { formatCurrency, formatDate } from '../../../../../utils/format'
 import { isToday } from '../../../../../utils/date'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
 const resolveCategory = (transaction: Transaction) => {
   if (typeof transaction.category === 'string') {
@@ -13,6 +15,7 @@ interface TransactionRowProps {
   transaction: Transaction
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
+  currency?: string
 }
 
 interface DeleteActionCellProps {
@@ -32,10 +35,10 @@ const DeleteActionCell = ({ canDelete, isDeleting, onClick }: DeleteActionCellPr
         title="Delete (today only)"
         onClick={onClick}
         disabled={isDeleting}
-        className={`${baseClasses} bg-transparent hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60`}
+        className={`${baseClasses} bg-transparent hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-200`}
       >
-        <span className="text-lg leading-none" style={{ color: '#ff0000' }}>
-          ×
+        <span className="text-sm leading-none" style={{ color: '#ff0000' }}>
+          <FontAwesomeIcon icon={faTrash} />
         </span>
       </button>
     )
@@ -43,8 +46,8 @@ const DeleteActionCell = ({ canDelete, isDeleting, onClick }: DeleteActionCellPr
 
   return (
     <div className={`${baseClasses} cursor-default`}>
-      <span className="text-lg leading-none" style={{ color: '#666666' }}>
-        ×
+      <span className="text-sm leading-none" style={{ color: '#666666' }}>
+        <FontAwesomeIcon icon={faTrash} />
       </span>
     </div>
   )
@@ -52,6 +55,7 @@ const DeleteActionCell = ({ canDelete, isDeleting, onClick }: DeleteActionCellPr
 
 interface TransactionRowComponentProps extends TransactionRowProps {
   forceDeletable?: boolean
+  hideCategory?: boolean
 }
 
 export const TransactionRow = ({
@@ -59,6 +63,8 @@ export const TransactionRow = ({
   onDeleteTransaction,
   isDeleting,
   forceDeletable = false,
+  hideCategory = false,
+  currency,
 }: TransactionRowComponentProps) => {
   const isIncome = transaction.type === 'income'
   const canDelete = !!onDeleteTransaction && (forceDeletable || isToday(transaction.date))
@@ -66,23 +72,25 @@ export const TransactionRow = ({
   return (
     <tr className="group border-b border-[var(--border-glass)] last:border-b-0 hover:bg-[var(--surface-glass)]">
       <td className="px-4 py-3 text-sm text-[var(--page-fg)]">{formatDate(transaction.date)}</td>
-      <td
-        className="max-w-[200px] truncate px-4 py-3 text-sm text-[var(--page-fg)]"
-        title={resolveCategory(transaction)}
-      >
-        {resolveCategory(transaction)}
-      </td>
+      {!hideCategory && (
+        <td
+          className="max-w-[200px] truncate px-4 py-3 text-sm text-[var(--page-fg)]"
+          title={resolveCategory(transaction)}
+        >
+          {resolveCategory(transaction)}
+        </td>
+      )}
       <td
         className={`px-4 py-3 text-right text-sm font-semibold ${isIncome ? 'text-income' : 'text-expense'}`}
       >
         {isIncome ? '+' : '-'}
-        {formatCurrency(Math.abs(transaction.amount))}
+        {formatCurrency(Math.abs(transaction.amount), currency)}
       </td>
       <td
-        className="max-w-[360px] truncate px-4 py-3 text-sm text-[var(--text-muted)]"
-        title={transaction.note ?? 'No note'}
+        className="max-w-[360px] truncate hidden md:table-cell px-4 py-3 text-sm text-[var(--text-muted)]"
+        title={transaction.note ?? ''}
       >
-        {transaction.note ?? 'No note'}
+        {transaction.note ?? ''}
       </td>
       <td className="px-4 py-3 text-right text-sm">
         <DeleteActionCell

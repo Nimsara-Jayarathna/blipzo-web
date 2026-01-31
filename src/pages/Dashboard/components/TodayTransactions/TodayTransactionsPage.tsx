@@ -9,6 +9,7 @@ interface TodayTransactionsPageProps {
   balance: number
   onDeleteTransaction?: (transaction: Transaction) => void
   isDeleting?: boolean
+  currency?: string
 }
 
 export const TodayTransactionsPage = ({
@@ -19,6 +20,7 @@ export const TodayTransactionsPage = ({
   balance,
   onDeleteTransaction,
   isDeleting,
+  currency,
 }: TodayTransactionsPageProps) => {
   return (
     <TodayActivitySection
@@ -29,6 +31,7 @@ export const TodayTransactionsPage = ({
       balance={balance}
       onDeleteTransaction={onDeleteTransaction}
       isDeleting={isDeleting}
+      currency={currency}
     />
   )
 }

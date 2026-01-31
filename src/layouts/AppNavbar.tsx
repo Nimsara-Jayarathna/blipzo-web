@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChartLine, faGear, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
+import { faGear, faMoon, faRightFromBracket, faSun } from '@fortawesome/free-solid-svg-icons'
 import type { ThemeMode } from '../hooks/useTheme'
 
 type NavbarVariant = 'landing' | 'dashboard'
@@ -12,7 +12,6 @@ interface AppNavbarProps {
   onLogin?: () => void
   onRegister?: () => void
   onOpenSettings?: () => void
-  onOpenReports?: () => void
   onLogout?: () => void
   userName?: string
 }
@@ -24,7 +23,6 @@ export const AppNavbar = ({
   onLogin,
   onRegister,
   onOpenSettings,
-  onOpenReports,
   onLogout,
   userName,
 }: AppNavbarProps) => {
@@ -32,13 +30,12 @@ export const AppNavbar = ({
   const headerClass = isLanding
     ? 'relative z-50'
     : 'sticky top-0 z-40 border-b border-[var(--border-glass)] bg-[var(--surface-glass)] backdrop-blur-md'
-  const containerClass = `mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 ${
-    isLanding ? 'px-8 py-8' : 'px-6 py-4'
-  }`
+  const containerClass = `mx-auto flex max-w-7xl items-center justify-between gap-3 ${isLanding ? 'px-4 py-4 sm:px-8 sm:py-8' : 'px-4 py-3 sm:px-6 sm:py-4'
+    }`
   const itemClass =
     'inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-2 text-sm font-medium text-[var(--page-fg)] backdrop-blur-md transition hover:border-accent/40 hover:text-accent'
   const themeButtonClass =
-    'rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--page-fg)] shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:text-accent'
+    'flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] text-[var(--page-fg)] shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:text-accent'
   const landingPrimaryClass =
     'rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-6 py-2 text-sm font-bold text-[var(--page-fg)] backdrop-blur-md transition hover:border-[#3498db] hover:text-[#3498db]'
   const iconClass = 'h-4 w-4 text-accent'
@@ -68,8 +65,13 @@ export const AppNavbar = ({
         <div className="flex flex-wrap items-center justify-end gap-2">
           {isLanding ? (
             <>
-              <button type="button" onClick={onToggleTheme} className={themeButtonClass}>
-                {theme === 'light' ? 'Dark mode' : 'Light mode'}
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className={themeButtonClass}
+                aria-label="Toggle theme"
+              >
+                <FontAwesomeIcon icon={theme === 'light' ? faMoon : faSun} />
               </button>
               <button type="button" onClick={onLogin} className={landingPrimaryClass}>
                 Log in
@@ -77,15 +79,20 @@ export const AppNavbar = ({
               <button
                 type="button"
                 onClick={onRegister}
-                className="hidden rounded-full bg-[#3498db] px-6 py-2 text-sm font-bold text-white shadow-[0_10px_20px_-5px_rgba(52,152,219,0.4)] transition hover:bg-[#2F89C9] sm:block"
+                className="rounded-full bg-[#3498db] px-4 py-2 text-xs font-bold text-white shadow-[0_10px_20px_-5px_rgba(52,152,219,0.4)] transition hover:bg-[#2F89C9] sm:px-6 sm:py-2 sm:text-sm"
               >
                 Create account
               </button>
             </>
           ) : (
             <>
-              <button type="button" onClick={onToggleTheme} className={themeButtonClass}>
-                {theme === 'light' ? 'Dark mode' : 'Light mode'}
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className={themeButtonClass}
+                aria-label="Toggle theme"
+              >
+                <FontAwesomeIcon icon={theme === 'light' ? faMoon : faSun} />
               </button>
               {userName ? (
                 <details ref={profileRef} className="group relative">
@@ -96,19 +103,6 @@ export const AppNavbar = ({
                     <span className="font-semibold text-[var(--page-fg)]">{userName}</span>
                   </summary>
                   <div className="absolute right-0 top-full z-50 mt-3 w-48 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-2 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.4)] backdrop-blur-xl">
-                    {onOpenReports ? (
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 rounded-full px-3 py-2 text-sm text-[var(--page-fg)] transition hover:bg-[var(--surface-glass)]"
-                        onClick={() => {
-                          onOpenReports()
-                          if (profileRef.current) profileRef.current.open = false
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faChartLine} className={iconClass} />
-                        Reports
-                      </button>
-                    ) : null}
                     {onOpenSettings ? (
                       <button
                         type="button"
@@ -145,3 +139,4 @@ export const AppNavbar = ({
     </header>
   )
 }
+

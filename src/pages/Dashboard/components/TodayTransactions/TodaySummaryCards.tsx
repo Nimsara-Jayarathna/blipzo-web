@@ -6,35 +6,36 @@ interface TodaySummaryCardsProps {
   income: number
   expense: number
   balance: number
+  currency?: string
 }
 
-export const TodaySummaryCards = ({ income, expense, balance }: TodaySummaryCardsProps) => {
+export const TodaySummaryCards = ({ income, expense, balance, currency }: TodaySummaryCardsProps) => {
   const cards = [
     {
-      title: "Today's income",
+      title: "Income",
       amount: income,
       accent: 'income' as const,
       icon: <FontAwesomeIcon icon={faArrowTrendUp} />,
-      highlight: 'Money in today',
+      highlight: 'Today',
     },
     {
-      title: "Today's expenses",
+      title: "Expenses",
       amount: expense,
       accent: 'expense' as const,
       icon: <FontAwesomeIcon icon={faArrowTrendDown} />,
-      highlight: 'Money out today',
+      highlight: 'Today',
     },
     {
-      title: "Today's balance",
+      title: "Balance",
       amount: balance,
       accent: 'balance' as const,
       icon: <FontAwesomeIcon icon={faWallet} />,
-      highlight: balance >= 0 ? 'On track today' : 'Overspending today',
+      highlight: balance >= 0 ? 'On track' : 'Overspent',
     },
   ]
 
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
       {cards.map(card => (
         <SummaryCard
           key={card.title}
@@ -43,6 +44,7 @@ export const TodaySummaryCards = ({ income, expense, balance }: TodaySummaryCard
           accent={card.accent}
           icon={card.icon}
           highlight={card.highlight}
+          currency={currency}
         />
       ))}
     </div>

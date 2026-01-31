@@ -6,7 +6,7 @@ export const DashboardPreview = () => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.2, duration: 1 }}
-      className="relative rounded-[2.5rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-card backdrop-blur-xl"
+      className="relative rounded-[2.5rem] border border-[var(--border-glass)] bg-[var(--surface-glass)] p-4 shadow-xl backdrop-blur-xl"
     >
       <div className="rounded-[2rem] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-8 shadow-soft backdrop-blur-xl">
         <div className="mb-10 flex justify-center">

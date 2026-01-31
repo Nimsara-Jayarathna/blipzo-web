@@ -1,6 +1,6 @@
 import type { Transaction } from '../../../../types'
-import { TransactionList } from '../../../../components/TransactionList'
-import { LoadingSpinner } from '../../../../components/LoadingSpinner'
+import { TransactionList } from '../TransactionList'
+import { Spinner } from '../../../../components/Spinner'
 import { EmptyState } from '../ui/EmptyState'
 import { ListHeader } from './ListHeader'
 
@@ -28,7 +28,7 @@ export const TransactionsSection = ({
       <ListHeader title={title} />
 
       {isLoading ? (
-        <LoadingSpinner />
+        <Spinner size="lg" centered />
       ) : transactions && transactions.length ? (
         <TransactionList
           transactions={transactions}

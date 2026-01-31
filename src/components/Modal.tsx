@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode } from 'react'
+import { useScrollLock } from '../hooks/useScrollLock'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface ModalProps {
@@ -10,6 +11,12 @@ interface ModalProps {
   footer?: ReactNode
   headerActions?: ReactNode
   widthClassName?: string
+  zIndex?: string
+  showCloseButton?: boolean
+  bodyClassName?: string
+  bodyScroll?: boolean
+  containerClassName?: string
+  panelClassName?: string
 }
 
 export const Modal = ({
@@ -21,23 +28,20 @@ export const Modal = ({
   footer,
   headerActions,
   widthClassName = 'max-w-lg',
+  zIndex = 'z-50',
+  showCloseButton = true,
+  bodyClassName,
+  bodyScroll = true,
+  containerClassName,
+  panelClassName,
 }: ModalProps) => {
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
+  useScrollLock(open)
 
   return (
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          className={`fixed inset-0 flex items-center justify-center p-4 sm:p-6 ${zIndex} ${containerClassName ?? ''}`}
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -53,7 +57,7 @@ export const Modal = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={`relative w-full overflow-hidden rounded-[34px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-8 pb-8 pt-10 text-[var(--page-fg)] shadow-[0_45px_120px_-50px_rgba(15,35,55,0.6)] backdrop-blur-2xl sm:px-10 ${widthClassName}`}
+            className={`relative w-full overflow-hidden rounded-[24px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-6 pb-6 pt-8 text-[var(--page-fg)] shadow-[0_45px_120px_-50px_rgba(15,35,55,0.6)] backdrop-blur-2xl sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10 ${widthClassName} ${panelClassName ?? ''}`}
             initial={{ y: 36, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 24, opacity: 0, scale: 0.97 }}
@@ -63,22 +67,30 @@ export const Modal = ({
             <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
             <div className="absolute right-6 top-6 flex items-center gap-2">
               {headerActions}
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
-              >
-                Close
-              </button>
+              {showCloseButton ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-subtle)] backdrop-blur-md transition hover:border-accent/40 hover:text-[var(--page-fg)]"
+                >
+                  Close
+                </button>
+              ) : null}
             </div>
-            <div className="flex flex-col gap-5">
+            <div className="flex min-h-0 flex-col gap-5">
               {title ? (
                 <div className="pr-4">
                   <h2 className="text-2xl font-semibold text-[var(--page-fg)]">{title}</h2>
                   {subtitle ? <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p> : null}
                 </div>
               ) : null}
-              <div className="max-h-[65vh] overflow-y-auto pr-2">
+              <div
+                className={`${
+                  bodyScroll
+                    ? "max-h-[65vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
+                    : 'min-h-0 overflow-hidden'
+                } ${bodyClassName ?? ''}`}
+              >
                 {children}
               </div>
               {footer ? <div className="border-t border-[var(--border-glass)] pt-4">{footer}</div> : null}

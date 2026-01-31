@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
+import { useBlockingAsync } from '../../hooks/useBlockingAsync'
+import { BlockingModal } from '../../components/BlockingModal'
+
 import dayjs from 'dayjs'
-import { AppNavbar } from '../../components/AppNavbar'
+import { AppNavbar } from '../../layouts/AppNavbar'
 import { Footer } from '../../components/Footer'
 import { deleteTransaction, getTransactionsFiltered } from '../../api/transactions'
 import { TabNavigation } from '../../components/TabNavigation'
@@ -12,36 +14,42 @@ import { AllTransactionsPage } from './components/AllTransactions/AllTransaction
 import { FloatingActionButton } from '../../components/FloatingActionButton'
 import { AddTransactionModal } from '../../modals/AddTransaction'
 import { SettingsModal } from '../../modals/Settings'
-import { ReportsModal } from '../../modals/Reports'
-import { logoutSession } from '../../api/auth'
+import { logoutSession, getSession } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
 import type { Transaction } from '../../types'
 import type { TransactionFilters } from '../../api/transactions'
 import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
-import { mapApiError } from '../../utils/errors'
+import { SummaryModal } from '../../modals/SummaryModal'
+import { getCategories } from '../../api/categories'
+import { getSupportedCurrencies } from '../../api/currencies'
+
 
 const transactionKey = ['transactions']
 
 export const DashboardPage = () => {
   const navigate = useNavigate()
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, setAuth } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const queryClient = useQueryClient()
   const todayDate = dayjs().format('YYYY-MM-DD')
+  const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD')
+  const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD')
   const [isSettingsOpen, setSettingsOpen] = useState(false)
-  const [isReportsOpen, setReportsOpen] = useState(false)
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
+  const [isSummaryOpen, setSummaryOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today')
+  const [lockScroll, setLockScroll] = useState(false)
+  const bodyOverflowRef = useRef<{ body: string; html: string } | null>(null)
   const [todayTransactions, setTodayTransactions] = useState<Transaction[]>([])
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
   const [todayIncome, setTodayIncome] = useState(0)
   const [todayExpense, setTodayExpense] = useState(0)
   const [todayBalance, setTodayBalance] = useState(0)
   const [allFilters, setAllFilters] = useState<AllTransactionsFilters>({
-    startDate: todayDate,
-    endDate: todayDate,
+    startDate: startOfMonth,
+    endDate: endOfMonth,
     typeFilter: 'all',
     categoryFilter: 'all',
     sortField: 'date',
@@ -51,7 +59,6 @@ export const DashboardPage = () => {
   const {
     data: todayData,
     isLoading: isTodayLoading,
-    isError: isTodayError,
   } = useQuery({
     queryKey: [...transactionKey, 'today', todayDate],
     queryFn: () =>
@@ -65,7 +72,6 @@ export const DashboardPage = () => {
   const {
     data: allData,
     isLoading: isAllLoading,
-    isError: isAllError,
   } = useQuery({
     queryKey: [...transactionKey, 'all', { ...allFilters, categoryFilter: undefined }],
     queryFn: () =>
@@ -93,8 +99,12 @@ export const DashboardPage = () => {
     setAllTransactions(allData?.transactions ?? [])
   }, [allData])
 
-  const deleteTransactionMutation = useMutation({
-    mutationFn: async (transaction: Transaction) => {
+  const {
+    execute: executeDelete,
+    isLoading: isDeleting,
+    modal: blockingModal,
+  } = useBlockingAsync(
+    async (transaction: Transaction) => {
       const identifier = transaction._id ?? transaction.id
 
       if (!identifier) {
@@ -104,40 +114,38 @@ export const DashboardPage = () => {
       await deleteTransaction(identifier)
       return transaction
     },
-    onSuccess: deleted => {
-      setTodayTransactions(prev =>
-        prev.filter(
-          item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
-        ),
-      )
-      setAllTransactions(prev =>
-        prev.filter(
-          item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
-        ),
-      )
+    {
+      successMessage: 'Transaction deleted successfully!',
+      onSuccess: (deleted) => {
+        setTodayTransactions(prev =>
+          prev.filter(
+            item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
+          ),
+        )
+        setAllTransactions(prev =>
+          prev.filter(
+            item => (item._id ?? item.id) !== (deleted._id ?? deleted.id),
+          ),
+        )
 
-      const todayReference = dayjs()
-      if (dayjs(deleted.date).isSame(todayReference, 'day')) {
-        if (deleted.type === 'income') {
-          setTodayIncome(prev => prev - deleted.amount)
-          setTodayBalance(prev => prev - deleted.amount)
-        } else if (deleted.type === 'expense') {
-          setTodayExpense(prev => prev - deleted.amount)
-          setTodayBalance(prev => prev + deleted.amount)
+        const todayReference = dayjs()
+        if (dayjs(deleted.date).isSame(todayReference, 'day')) {
+          if (deleted.type === 'income') {
+            setTodayIncome(prev => prev - deleted.amount)
+            setTodayBalance(prev => prev - deleted.amount)
+          } else if (deleted.type === 'expense') {
+            setTodayExpense(prev => prev - deleted.amount)
+            setTodayBalance(prev => prev + deleted.amount)
+          }
         }
-      }
 
-      queryClient.invalidateQueries({ queryKey: transactionKey })
-      toast.success('Transaction deleted')
-    },
-    onError: error => {
-      const friendly = mapApiError(error)
-      toast.error(friendly.message)
-    },
-  })
+        queryClient.invalidateQueries({ queryKey: transactionKey })
+      },
+    }
+  )
 
   const handleDeleteTransaction = (transaction: Transaction) => {
-    deleteTransactionMutation.mutate(transaction)
+    executeDelete(transaction)
   }
 
   const handleTransactionCreated = (transaction: Transaction) => {
@@ -154,36 +162,106 @@ export const DashboardPage = () => {
   const handleLogout = () => {
     void logoutSession().catch(() => { })
     logout()
-    toast.success('Logged out')
+
     navigate('/', { replace: true })
   }
 
   const displayName = user?.name?.split(' ')[0] ?? user?.email ?? 'there'
 
+  const filteredAllTransactions =
+    allFilters.categoryFilter === 'all'
+      ? allTransactions
+      : allTransactions.filter(transaction => {
+        const transactionCategoryId =
+          transaction.categoryId ?? (typeof transaction.category === 'string' ? transaction.category : undefined)
+        return transactionCategoryId === allFilters.categoryFilter
+      })
+
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false)
+
   useEffect(() => {
-    if (isTodayError || isAllError) {
-      toast.error('Unable to load dashboard data')
+    if (typeof window === 'undefined') return
+
+    const mediaQuery = window.matchMedia('(max-width: 639px)')
+    const updateLock = () => {
+      setLockScroll(mediaQuery.matches && activeTab === 'today')
     }
-  }, [isAllError, isTodayError])
+
+    updateLock()
+    mediaQuery.addEventListener?.('change', updateLock)
+    return () => mediaQuery.removeEventListener?.('change', updateLock)
+  }, [activeTab])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (lockScroll) {
+      if (!bodyOverflowRef.current) {
+        bodyOverflowRef.current = {
+          body: document.body.style.overflow,
+          html: document.documentElement.style.overflow,
+        }
+      }
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return
+    }
+
+    if (bodyOverflowRef.current) {
+      document.body.style.overflow = bodyOverflowRef.current.body
+      document.documentElement.style.overflow = bodyOverflowRef.current.html
+      bodyOverflowRef.current = null
+    }
+  }, [lockScroll])
+
+  const handleOpenSettings = async () => {
+    setIsSettingsLoading(true)
+    try {
+      const [sessionData] = await Promise.all([
+        getSession(),
+        queryClient.prefetchQuery({
+          queryKey: ['categories'],
+          queryFn: getCategories,
+          staleTime: 1000 * 60 * 5, // 5 minutes
+        }),
+        queryClient.prefetchQuery({
+          queryKey: ['currencies'],
+          queryFn: getSupportedCurrencies,
+          staleTime: 1000 * 60 * 60, // 1 hour
+        })
+      ])
+
+      if (sessionData && sessionData.user) {
+        setAuth({ user: sessionData.user, token: undefined })
+      }
+
+      setSettingsOpen(true)
+    } finally {
+      setIsSettingsLoading(false)
+    }
+  }
 
   return (
     <div
       data-theme={theme}
-      className="relative flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--page-fg)]"
+      className={`relative flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--page-fg)] ${
+        lockScroll ? 'h-[100dvh] overflow-hidden' : ''
+      }`}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(52,152,219,0.12),_transparent_60%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(46,204,113,0.1),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-hero-grid opacity-[0.03]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-[var(--page-overlay-strong)] via-[var(--page-overlay-soft)] to-transparent" />
+      {/* Subtle modern accent blobs */}
+      <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-[#3498db]/5 blur-[120px]" />
+      <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-[#2ecc71]/5 blur-[120px]" />
       <AppNavbar
         variant="dashboard"
         theme={theme}
         onToggleTheme={toggleTheme}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onOpenReports={() => setReportsOpen(true)}
+        onOpenSettings={handleOpenSettings}
         onLogout={handleLogout}
         userName={displayName}
       />
-      <main className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10 px-6 pb-16 pt-8">
-        <div className="flex flex-wrap items-center justify-center gap-4">
+      <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-6 px-4 pb-10 pt-6 sm:gap-10 sm:px-6 sm:pb-16 sm:pt-8">
+        <div className="sticky top-16 z-40 flex items-center justify-center sm:static">
           <TabNavigation
             tabs={[
               { id: 'today' as const, label: "Today's Activity" },
@@ -198,21 +276,24 @@ export const DashboardPage = () => {
           {activeTab === 'today' ? (
             <TodayTransactionsPage
               transactions={todayTransactions}
-              isLoading={isTodayLoading}
+              // isLoading={isTodayLoading} // Handled by blocking modal
               income={todayIncome}
               expense={todayExpense}
               balance={todayBalance}
               onDeleteTransaction={handleDeleteTransaction}
-              isDeleting={deleteTransactionMutation.isPending}
+              isDeleting={isDeleting}
+              currency={user?.currency?.code}
             />
           ) : (
             <AllTransactionsPage
-              transactions={allTransactions}
-              isLoading={isAllLoading}
+              transactions={filteredAllTransactions}
+              // isLoading={isAllLoading} // Handled by blocking modal
               filters={allFilters}
               onFiltersChange={setAllFilters}
               onDeleteTransaction={handleDeleteTransaction}
-              isDeleting={deleteTransactionMutation.isPending}
+              isDeleting={isDeleting}
+              currency={user?.currency?.code}
+              onOpenSummary={() => setSummaryOpen(true)}
             />
           )}
         </Widget>
@@ -221,13 +302,27 @@ export const DashboardPage = () => {
       <FloatingActionButton onClick={() => setAddTransactionOpen(true)} />
 
       <SettingsModal open={isSettingsOpen} onClose={() => setSettingsOpen(false)} />
-      <ReportsModal open={isReportsOpen} onClose={() => setReportsOpen(false)} />
+      <SummaryModal
+        open={isSummaryOpen}
+        onClose={() => setSummaryOpen(false)}
+        transactions={filteredAllTransactions}
+        currency={user?.currency?.code}
+        filters={allFilters}
+      />
       <AddTransactionModal
         open={isAddTransactionOpen}
         onClose={() => setAddTransactionOpen(false)}
         onTransactionCreated={handleTransactionCreated}
       />
-      <Footer />
+      <div className="hidden sm:block">
+        <Footer />
+      </div>
+      {blockingModal}
+      <BlockingModal
+        state={isTodayLoading || isAllLoading || isSettingsLoading ? 'loading' : 'idle'}
+        message={isSettingsLoading ? 'Loading settings...' : 'Updating transactions...'}
+        onClose={() => { }}
+      />
     </div>
   )
 }
