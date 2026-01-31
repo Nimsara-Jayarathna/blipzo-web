@@ -75,28 +75,10 @@ build_prod:
   script:
     - |
         ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-          "NPM_NET_NAME='${NPM_NET_NAME:-npm_default}' NPM_NET_SUBNET='${NPM_NET_SUBNET:-172.18.0.0/16}' NPM_NET_GATEWAY='${NPM_NET_GATEWAY:-172.18.0.1}' bash -s" <<'EOF'
+          "NPM_NET_NAME='${NPM_NET_NAME:-npm_default}' bash -s" <<'EOF'
         set -euo pipefail
-        if docker network inspect "$NPM_NET_NAME" >/dev/null 2>&1; then
-          EXISTING_SUBNET="$(docker network inspect -f '{{(index .IPAM.Config 0).Subnet}}' "$NPM_NET_NAME" 2>/dev/null || true)"
-          if [ -n "$EXISTING_SUBNET" ] && [ "$EXISTING_SUBNET" != "$NPM_NET_SUBNET" ]; then
-            echo "Warning: $NPM_NET_NAME subnet is $EXISTING_SUBNET (expected $NPM_NET_SUBNET)" >&2
-          fi
-        else
-          CONFLICT_NET=""
-          for net_id in $(docker network ls -q); do
-            net_name="$(docker network inspect -f '{{.Name}}' "$net_id" 2>/dev/null || true)"
-            net_subnet="$(docker network inspect -f '{{(index .IPAM.Config 0).Subnet}}' "$net_id" 2>/dev/null || true)"
-            if [ -n "$net_subnet" ] && [ "$net_subnet" = "$NPM_NET_SUBNET" ] && [ "$net_name" != "$NPM_NET_NAME" ]; then
-              CONFLICT_NET="$net_name"
-              break
-            fi
-          done
-          if [ -n "$CONFLICT_NET" ]; then
-            echo "Error: subnet $NPM_NET_SUBNET already in use by network $CONFLICT_NET" >&2
-            exit 1
-          fi
-          docker network create --driver bridge --subnet "$NPM_NET_SUBNET" --gateway "$NPM_NET_GATEWAY" "$NPM_NET_NAME"
+        if ! docker network inspect "$NPM_NET_NAME" >/dev/null 2>&1; then
+          docker network create --driver bridge "$NPM_NET_NAME"
         fi
         EOF
     - |
@@ -107,8 +89,8 @@ build_prod:
         ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "docker pull '$IMAGE'"
     - |
         ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-          "docker run -d --name '$CONTAINER_NAME' \
-          --network '${NPM_NET_NAME:-npm_default}' \
+          "NPM_NET_NAME='${NPM_NET_NAME:-npm_default}'; docker run -d --name '$CONTAINER_NAME' \
+          --network \"$NPM_NET_NAME\" \
           --network-alias '$NETWORK_ALIAS' \
           --restart unless-stopped \
           '$IMAGE'"
