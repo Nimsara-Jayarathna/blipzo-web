@@ -95,9 +95,9 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
       panelClassName="flex h-[90vh] w-full flex-col md:h-[600px]"
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex items-start justify-between gap-4 px-6 pt-6 md:px-8 md:pt-8">
+        <div className="flex items-start justify-between gap-4 px-6 pt-6 md:items-center md:px-8 md:pt-8">
           <div className="min-w-0 flex-1">
-            <div className="hidden md:block">
+            <div className="hidden md:flex md:justify-center">
               <TabNavigation
                 tabs={tabs.map(tab => ({
                   id: tab.id,

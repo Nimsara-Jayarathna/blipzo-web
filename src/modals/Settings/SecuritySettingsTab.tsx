@@ -21,7 +21,7 @@ export const SecuritySettingsTab = () => {
 
                     <div className="space-y-4 md:space-y-6">
                         <div className={cardStyles.primary}>
-                            <div className="space-y-3">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="space-y-1">
                                     <h3 className="text-base font-semibold text-[var(--page-fg)]">Email Address</h3>
                                     <p className="text-sm text-[var(--text-muted)]">{user?.email}</p>
@@ -36,7 +36,7 @@ export const SecuritySettingsTab = () => {
                         </div>
 
                         <div className={cardStyles.primary}>
-                            <div className="space-y-3">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="space-y-1">
                                     <h3 className="text-base font-semibold text-[var(--page-fg)]">Password</h3>
                                     <p className="text-sm text-[var(--text-muted)]">Update your password securely</p>
