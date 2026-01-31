@@ -89,11 +89,14 @@ build_prod:
         ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "docker pull '$IMAGE'"
     - |
         ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-          "NPM_NET_NAME='${NPM_NET_NAME:-npm_default}'; docker run -d --name '$CONTAINER_NAME' \
-          --network \"$NPM_NET_NAME\" \
-          --network-alias '$NETWORK_ALIAS' \
+          "NPM_NET_NAME='${NPM_NET_NAME:-npm_default}' CONTAINER_NAME='$CONTAINER_NAME' NETWORK_ALIAS='$NETWORK_ALIAS' IMAGE='$IMAGE' bash -s" <<'EOF'
+        set -euo pipefail
+        docker run -d --name "$CONTAINER_NAME" \
+          --network "$NPM_NET_NAME" \
+          --network-alias "$NETWORK_ALIAS" \
           --restart unless-stopped \
-          '$IMAGE'"
+          "$IMAGE"
+        EOF
 
 deploy_stg:
   extends: .deploy_template
