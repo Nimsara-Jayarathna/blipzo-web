@@ -1,2 +1,0 @@
-export { ReportsModal } from './ReportsModal'
-

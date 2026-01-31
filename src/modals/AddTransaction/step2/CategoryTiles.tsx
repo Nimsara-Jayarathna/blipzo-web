@@ -44,7 +44,7 @@ export const CategoryTiles = ({ categories, selectedCategoryId, isLoading, onSel
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-5 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-5">
         {visibleCategories.map(category => {
           const isSelected = selectedCategoryId === category.id
           const isDefaultForType = Boolean(category.isDefault)
@@ -54,7 +54,7 @@ export const CategoryTiles = ({ categories, selectedCategoryId, isLoading, onSel
               type="button"
               title={category.name}
               onClick={() => onSelectCategory(category.id)}
-              className={`relative flex h-full min-h-[44px] w-full flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-center text-xs font-medium transition ${isSelected
+              className={`relative flex h-full min-h-[44px] w-full flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-center text-[11px] font-medium transition sm:text-xs ${isSelected
                 ? 'border-accent bg-accent text-white shadow-md'
                 : 'border-[var(--border-glass)] bg-[var(--surface-glass)] text-[var(--text-muted)] hover:border-accent/40 hover:text-[var(--page-fg)]'
                 }`}

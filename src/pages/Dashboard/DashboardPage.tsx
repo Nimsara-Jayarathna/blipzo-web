@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useBlockingAsync } from '../../hooks/useBlockingAsync'
@@ -14,7 +14,6 @@ import { AllTransactionsPage } from './components/AllTransactions/AllTransaction
 import { FloatingActionButton } from '../../components/FloatingActionButton'
 import { AddTransactionModal } from '../../modals/AddTransaction'
 import { SettingsModal } from '../../modals/Settings'
-import { ReportsModal } from '../../modals/Reports'
 import { logoutSession, getSession } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
@@ -22,7 +21,6 @@ import type { Transaction } from '../../types'
 import type { TransactionFilters } from '../../api/transactions'
 import type { AllTransactionsFilters } from './components/AllTransactions/types'
 import { Widget } from './components/Widget'
-import { faChartPie } from '@fortawesome/free-solid-svg-icons'
 import { SummaryModal } from '../../modals/SummaryModal'
 import { getCategories } from '../../api/categories'
 import { getSupportedCurrencies } from '../../api/currencies'
@@ -39,10 +37,11 @@ export const DashboardPage = () => {
   const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD')
   const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD')
   const [isSettingsOpen, setSettingsOpen] = useState(false)
-  const [isReportsOpen, setReportsOpen] = useState(false)
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
   const [isSummaryOpen, setSummaryOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today')
+  const [lockScroll, setLockScroll] = useState(false)
+  const bodyOverflowRef = useRef<{ body: string; html: string } | null>(null)
   const [todayTransactions, setTodayTransactions] = useState<Transaction[]>([])
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
   const [todayIncome, setTodayIncome] = useState(0)
@@ -180,6 +179,40 @@ export const DashboardPage = () => {
 
   const [isSettingsLoading, setIsSettingsLoading] = useState(false)
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const mediaQuery = window.matchMedia('(max-width: 639px)')
+    const updateLock = () => {
+      setLockScroll(mediaQuery.matches && activeTab === 'today')
+    }
+
+    updateLock()
+    mediaQuery.addEventListener?.('change', updateLock)
+    return () => mediaQuery.removeEventListener?.('change', updateLock)
+  }, [activeTab])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (lockScroll) {
+      if (!bodyOverflowRef.current) {
+        bodyOverflowRef.current = {
+          body: document.body.style.overflow,
+          html: document.documentElement.style.overflow,
+        }
+      }
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return
+    }
+
+    if (bodyOverflowRef.current) {
+      document.body.style.overflow = bodyOverflowRef.current.body
+      document.documentElement.style.overflow = bodyOverflowRef.current.html
+      bodyOverflowRef.current = null
+    }
+  }, [lockScroll])
+
   const handleOpenSettings = async () => {
     setIsSettingsLoading(true)
     try {
@@ -210,7 +243,9 @@ export const DashboardPage = () => {
   return (
     <div
       data-theme={theme}
-      className="relative flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--page-fg)]"
+      className={`relative flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--page-fg)] ${
+        lockScroll ? 'h-[100dvh] overflow-hidden' : ''
+      }`}
     >
       <div className="pointer-events-none absolute inset-0 bg-hero-grid opacity-[0.03]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-[var(--page-overlay-strong)] via-[var(--page-overlay-soft)] to-transparent" />
@@ -222,12 +257,11 @@ export const DashboardPage = () => {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenSettings={handleOpenSettings}
-        onOpenReports={() => setReportsOpen(true)}
         onLogout={handleLogout}
         userName={displayName}
       />
-      <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-24 pt-6 sm:gap-10 sm:px-6 sm:pb-16 sm:pt-8">
-        <div className="flex items-center justify-center">
+      <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-6 px-4 pb-10 pt-6 sm:gap-10 sm:px-6 sm:pb-16 sm:pt-8">
+        <div className="sticky top-16 z-40 flex items-center justify-center sm:static">
           <TabNavigation
             tabs={[
               { id: 'today' as const, label: "Today's Activity" },
@@ -259,19 +293,11 @@ export const DashboardPage = () => {
               onDeleteTransaction={handleDeleteTransaction}
               isDeleting={isDeleting}
               currency={user?.currency?.code}
+              onOpenSummary={() => setSummaryOpen(true)}
             />
           )}
         </Widget>
       </main>
-
-      {activeTab === 'all' && (
-        <FloatingActionButton
-          onClick={() => setSummaryOpen(true)}
-          icon={faChartPie}
-          label="View Summary"
-          className="bottom-24 sm:bottom-28 bg-[var(--surface-glass)] text-[var(--fg)] hover:bg-[var(--surface-glass-thick)] border border-[var(--border-glass)]"
-        />
-      )}
 
       <FloatingActionButton onClick={() => setAddTransactionOpen(true)} />
 
@@ -283,13 +309,14 @@ export const DashboardPage = () => {
         currency={user?.currency?.code}
         filters={allFilters}
       />
-      <ReportsModal open={isReportsOpen} onClose={() => setReportsOpen(false)} />
       <AddTransactionModal
         open={isAddTransactionOpen}
         onClose={() => setAddTransactionOpen(false)}
         onTransactionCreated={handleTransactionCreated}
       />
-      <Footer />
+      <div className="hidden sm:block">
+        <Footer />
+      </div>
       {blockingModal}
       <BlockingModal
         state={isTodayLoading || isAllLoading || isSettingsLoading ? 'loading' : 'idle'}
