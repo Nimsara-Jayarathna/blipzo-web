@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { ChangeEmailOverlay } from './ChangeEmailOverlay'
 import { ChangePasswordOverlay } from './ChangePasswordOverlay'
@@ -52,15 +53,25 @@ export const SecuritySettingsTab = () => {
                 </section>
             </div>
 
-            <ChangeEmailOverlay
-                open={isEmailOverlayOpen}
-                onClose={() => setIsEmailOverlayOpen(false)}
-            />
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <ChangeEmailOverlay
+                        open={isEmailOverlayOpen}
+                        onClose={() => setIsEmailOverlayOpen(false)}
+                    />,
+                    document.body
+                )
+                : null}
 
-            <ChangePasswordOverlay
-                open={isPasswordOverlayOpen}
-                onClose={() => setIsPasswordOverlayOpen(false)}
-            />
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <ChangePasswordOverlay
+                        open={isPasswordOverlayOpen}
+                        onClose={() => setIsPasswordOverlayOpen(false)}
+                    />,
+                    document.body
+                )
+                : null}
         </>
     )
 }
