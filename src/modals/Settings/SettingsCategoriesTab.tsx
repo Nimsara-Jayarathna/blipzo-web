@@ -147,7 +147,12 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                 <button
                     type="button"
                     onClick={onAddCategoryOpen}
-                    className="relative w-full overflow-hidden rounded-xl bg-[#3498db] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95 sm:w-auto sm:py-2.5"
+                    className={`relative w-full overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-95 sm:w-auto sm:py-2.5 ${isMobile
+                            ? 'bg-[#3498db] shadow-blue-500/20 hover:bg-[#2980b9] hover:shadow-blue-500/30'
+                            : activeType === 'income'
+                                ? 'bg-[#27ae60] shadow-green-500/20 hover:bg-[#229954] hover:shadow-green-500/30'
+                                : 'bg-[#e74c3c] shadow-red-500/20 hover:bg-[#c0392b] hover:shadow-red-500/30'
+                        }`}
                 >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                         <span className="text-lg leading-none">+</span>
@@ -156,7 +161,32 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                 </button>
             </div>
 
-            <div className="mb-4 flex items-center justify-center sm:hidden">
+            {/* Desktop: Segmented Control with reactive colors */}
+            <div className="mb-4 hidden items-center justify-center md:flex">
+                <div className="inline-flex items-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
+                    {(['income', 'expense'] as const).map(type => {
+                        const isActive = activeType === type
+                        return (
+                            <button
+                                key={type}
+                                type="button"
+                                onClick={() => setActiveType(type)}
+                                className={`flex-1 rounded-full px-6 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition-all ${isActive
+                                        ? type === 'income'
+                                            ? 'bg-[#27ae60] text-white shadow-[0_10px_25px_-18px_rgba(39,174,96,0.8)]'
+                                            : 'bg-[#e74c3c] text-white shadow-[0_10px_25px_-18px_rgba(231,76,60,0.8)]'
+                                        : 'text-[var(--text-muted)]'
+                                    }`}
+                            >
+                                {type === 'income' ? 'Income' : 'Expense'}
+                            </button>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* Mobile: Segmented Control with blue accent */}
+            <div className="mb-4 flex items-center justify-center md:hidden">
                 <div className="inline-flex w-full items-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
                     {(['income', 'expense'] as const).map(type => {
                         const isActive = activeType === type
@@ -165,11 +195,10 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                                 key={type}
                                 type="button"
                                 onClick={() => setActiveType(type)}
-                                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition-all ${
-                                    isActive
+                                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition-all ${isActive
                                         ? 'bg-accent text-white shadow-[0_10px_25px_-18px_rgba(59,130,246,0.8)]'
                                         : 'text-[var(--text-muted)]'
-                                }`}
+                                    }`}
                             >
                                 {type === 'income' ? 'Income' : 'Expense'}
                             </button>
