@@ -14,7 +14,6 @@ import { AllTransactionsPage } from './components/AllTransactions/AllTransaction
 import { FloatingActionButton } from '../../components/FloatingActionButton'
 import { AddTransactionModal } from '../../modals/AddTransaction'
 import { SettingsModal } from '../../modals/Settings'
-import { ReportsModal } from '../../modals/Reports'
 import { logoutSession, getSession } from '../../api/auth'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
@@ -38,7 +37,6 @@ export const DashboardPage = () => {
   const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD')
   const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD')
   const [isSettingsOpen, setSettingsOpen] = useState(false)
-  const [isReportsOpen, setReportsOpen] = useState(false)
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
   const [isSummaryOpen, setSummaryOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today')
@@ -259,7 +257,6 @@ export const DashboardPage = () => {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenSettings={handleOpenSettings}
-        onOpenReports={() => setReportsOpen(true)}
         onLogout={handleLogout}
         userName={displayName}
       />
@@ -312,7 +309,6 @@ export const DashboardPage = () => {
         currency={user?.currency?.code}
         filters={allFilters}
       />
-      <ReportsModal open={isReportsOpen} onClose={() => setReportsOpen(false)} />
       <AddTransactionModal
         open={isAddTransactionOpen}
         onClose={() => setAddTransactionOpen(false)}

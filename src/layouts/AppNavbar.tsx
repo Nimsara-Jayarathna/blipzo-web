@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChartLine, faGear, faMoon, faRightFromBracket, faSun } from '@fortawesome/free-solid-svg-icons'
+import { faGear, faMoon, faRightFromBracket, faSun } from '@fortawesome/free-solid-svg-icons'
 import type { ThemeMode } from '../hooks/useTheme'
 
 type NavbarVariant = 'landing' | 'dashboard'
@@ -12,7 +12,6 @@ interface AppNavbarProps {
   onLogin?: () => void
   onRegister?: () => void
   onOpenSettings?: () => void
-  onOpenReports?: () => void
   onLogout?: () => void
   userName?: string
 }
@@ -24,7 +23,6 @@ export const AppNavbar = ({
   onLogin,
   onRegister,
   onOpenSettings,
-  onOpenReports,
   onLogout,
   userName,
 }: AppNavbarProps) => {
@@ -105,19 +103,6 @@ export const AppNavbar = ({
                     <span className="font-semibold text-[var(--page-fg)]">{userName}</span>
                   </summary>
                   <div className="absolute right-0 top-full z-50 mt-3 w-48 rounded-2xl border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] p-2 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.4)] backdrop-blur-xl">
-                    {onOpenReports ? (
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 rounded-full px-3 py-2 text-sm text-[var(--page-fg)] transition hover:bg-[var(--surface-glass)]"
-                        onClick={() => {
-                          onOpenReports()
-                          if (profileRef.current) profileRef.current.open = false
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faChartLine} className={iconClass} />
-                        Reports
-                      </button>
-                    ) : null}
                     {onOpenSettings ? (
                       <button
                         type="button"
