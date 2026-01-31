@@ -48,7 +48,7 @@ export const StepTwo = ({
   const isToday = date === dayjs().format('YYYY-MM-DD')
 
   return (
-    <form className="flex flex-col gap-5 sm:gap-6" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-4 sm:gap-6" onSubmit={onSubmit}>
       {/* Header Section */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         
@@ -57,13 +57,13 @@ export const StepTwo = ({
           <button
             type="button"
             onClick={onBack}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] text-[var(--text-muted)] transition hover:border-accent/40 hover:bg-[var(--surface-hover)] hover:text-[var(--page-fg)] active:scale-95"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] text-[var(--text-muted)] transition hover:border-accent/40 hover:bg-[var(--surface-hover)] hover:text-[var(--page-fg)] active:scale-95 sm:h-10 sm:w-10"
             title="Go Back"
           >
             <span className="text-lg leading-none pb-0.5">←</span>
           </button>
 
-          <div className="flex h-10 flex-1 items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 sm:flex-none">
+          <div className="flex h-9 flex-1 items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-3 sm:h-10 sm:flex-none sm:px-4">
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-70">Amount</span>
             <span className="flex-1 text-right text-sm font-semibold text-[var(--page-fg)] sm:text-left">
               {currencySymbol} {amount || '0.00'}
@@ -72,13 +72,13 @@ export const StepTwo = ({
         </div>
 
         {/* Row 2: Toggle (Full width on mobile, auto on desktop) */}
-        <div className="flex h-10 w-full sm:w-auto overflow-hidden rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1">
+        <div className="flex h-9 w-full overflow-hidden rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1 sm:h-10 sm:w-auto">
           {(['income', 'expense'] as const).map(option => (
             <button
               key={option}
               type="button"
               onClick={() => onChangeType(option)}
-              className={`flex-1 sm:flex-none rounded-full px-6 text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${transactionType === option
+              className={`flex-1 sm:flex-none rounded-full px-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-all sm:px-6 sm:text-[10px] ${transactionType === option
                 ? option === 'income'
                   ? 'bg-income text-white shadow-sm'
                   : 'bg-expense text-white shadow-sm'
@@ -112,7 +112,7 @@ export const StepTwo = ({
           type="date"
           value={date}
           onChange={event => onChangeDate(event.target.value)}
-          className={`rounded-2xl border px-4 py-3 text-sm text-[var(--page-fg)] focus:outline-none focus:ring-2 ${isToday
+          className={`rounded-2xl border px-3 py-2.5 text-sm text-[var(--page-fg)] focus:outline-none focus:ring-2 sm:px-4 sm:py-3 ${isToday
             ? 'border-accent bg-accent/5 focus:border-accent focus:ring-accent/40'
             : 'border-[var(--border-glass)] bg-[var(--surface-glass)] focus:border-accent focus:ring-accent/30'
             }`}
@@ -126,13 +126,13 @@ export const StepTwo = ({
           onChange={event => onChangeNote(event.target.value)}
           rows={3}
           placeholder="Optional note about this transaction"
-          className="rounded-2xl border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          className="rounded-2xl border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2.5 text-sm text-[var(--page-fg)] placeholder:text-[var(--text-subtle)] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:px-4 sm:py-3"
         />
       </label>
 
       <button
         type="submit"
-        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-base font-semibold text-white transition hover:bg-[#2F89C9] disabled:cursor-not-allowed disabled:opacity-70 sm:py-2 sm:text-sm"
+        className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2F89C9] disabled:cursor-not-allowed disabled:opacity-70 sm:py-2 sm:text-sm"
         disabled={isSubmitting || isLoadingCategories || !filteredCategories.length}
       >
         {isSubmitting ? <span>Saving...</span> : <span>Add Transaction</span>}

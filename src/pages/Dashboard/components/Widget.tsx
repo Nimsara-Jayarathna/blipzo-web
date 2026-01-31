@@ -6,9 +6,8 @@ interface WidgetProps {
 
 export const Widget = ({ children }: WidgetProps) => {
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-1 min-h-0 flex-col">
       {children}
     </div>
   )
 }
-

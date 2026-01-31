@@ -1,73 +1,77 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { ChangeEmailModal } from './ChangeEmailModal'
-import { ChangePasswordModal } from './ChangePasswordModal'
+import { ChangeEmailOverlay } from './ChangeEmailOverlay'
+import { ChangePasswordOverlay } from './ChangePasswordOverlay'
+import { buttonStyles, cardStyles } from './settingsStyles'
 
 export const SecuritySettingsTab = () => {
     const { user } = useAuth()
-    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+    const [isEmailOverlayOpen, setIsEmailOverlayOpen] = useState(false)
+    const [isPasswordOverlayOpen, setIsPasswordOverlayOpen] = useState(false)
 
     return (
-        <div className="space-y-6 overflow-y-auto pr-2">
-            <section>
-                <div className="mb-6">
-                    <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Account Security</h2>
-                    <p className="text-sm text-[var(--text-muted)]">Manage your account credentials and security preferences.</p>
-                </div>
+        <>
+            <div className="flex h-full min-h-0 flex-col space-y-4 overflow-y-auto md:space-y-6">
+                <section>
+                    <div className="mb-4 hidden md:block md:mb-6">
+                        <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Account Security</h2>
+                        <p className="text-sm text-[var(--text-muted)]">Manage your account credentials and security preferences.</p>
+                    </div>
 
-                <div className="grid gap-6">
-                    {/* Email Change Section */}
-                    <div className="group relative overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass)]/30 p-1 transition-all hover:border-[var(--border-glass-strong)] hover:shadow-lg hover:shadow-black/5">
-                        <div className="relative rounded-[1.4rem] bg-[var(--page-bg)]/40 p-6 backdrop-blur-xl">
-                            <div className="flex items-center justify-between">
+                    <div className="space-y-4 md:space-y-6">
+                        <div className={cardStyles.primary}>
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="space-y-1">
                                     <h3 className="text-base font-semibold text-[var(--page-fg)]">Email Address</h3>
-                                    <p className="text-sm text-[var(--text-muted)] group-hover:text-[var(--text-subtle)] transition-colors">
-                                        {user?.email}
-                                    </p>
+                                    <p className="text-sm text-[var(--text-muted)]">{user?.email}</p>
                                 </div>
                                 <button
-                                    onClick={() => setIsEmailModalOpen(true)}
-                                    className="relative overflow-hidden rounded-xl bg-[var(--surface-glass-thick)] px-6 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm ring-1 ring-inset ring-[var(--border-glass)] transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md hover:ring-[var(--border-glass-strong)] active:scale-95"
+                                    onClick={() => setIsEmailOverlayOpen(true)}
+                                    className={`w-full md:w-auto ${buttonStyles.secondary}`}
                                 >
                                     Change Email
                                 </button>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Password Change Section */}
-                    <div className="group relative overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass)]/30 p-1 transition-all hover:border-[var(--border-glass-strong)] hover:shadow-lg hover:shadow-black/5">
-                        <div className="relative rounded-[1.4rem] bg-[var(--page-bg)]/40 p-6 backdrop-blur-xl">
-                            <div className="flex items-center justify-between">
+                        <div className={cardStyles.primary}>
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="space-y-1">
                                     <h3 className="text-base font-semibold text-[var(--page-fg)]">Password</h3>
-                                    <p className="text-sm text-[var(--text-muted)] group-hover:text-[var(--text-subtle)] transition-colors">
-                                        Update your password securely
-                                    </p>
+                                    <p className="text-sm text-[var(--text-muted)]">Update your password securely</p>
                                 </div>
                                 <button
-                                    onClick={() => setIsPasswordModalOpen(true)}
-                                    className="relative overflow-hidden rounded-xl bg-[var(--surface-glass-thick)] px-6 py-2.5 text-sm font-medium text-[var(--page-fg)] shadow-sm ring-1 ring-inset ring-[var(--border-glass)] transition-all hover:bg-[var(--surface-glass-strong)] hover:shadow-md hover:ring-[var(--border-glass-strong)] active:scale-95"
+                                    onClick={() => setIsPasswordOverlayOpen(true)}
+                                    className={`w-full md:w-auto ${buttonStyles.secondary}`}
                                 >
                                     Change Password
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
 
-            <ChangeEmailModal
-                open={isEmailModalOpen}
-                onClose={() => setIsEmailModalOpen(false)}
-            />
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <ChangeEmailOverlay
+                        open={isEmailOverlayOpen}
+                        onClose={() => setIsEmailOverlayOpen(false)}
+                    />,
+                    document.body
+                )
+                : null}
 
-            <ChangePasswordModal
-                open={isPasswordModalOpen}
-                onClose={() => setIsPasswordModalOpen(false)}
-            />
-        </div>
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <ChangePasswordOverlay
+                        open={isPasswordOverlayOpen}
+                        onClose={() => setIsPasswordOverlayOpen(false)}
+                    />,
+                    document.body
+                )
+                : null}
+        </>
     )
 }

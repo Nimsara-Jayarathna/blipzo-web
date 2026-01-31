@@ -56,38 +56,37 @@ export const TabNavigation = <T extends string>({ tabs, activeTab, onChange }: T
   }, [activeTab, updateIndicator])
 
   return (
-    <div
-      ref={containerRef}
-      className="relative inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] p-1 shadow-soft backdrop-blur-md"
-    >
-      <span
-        aria-hidden="true"
-        className={`pointer-events-none absolute left-0 top-1 bottom-1 rounded-full border border-white/30 bg-[linear-gradient(135deg,rgba(59,130,246,0.55),rgba(59,130,246,0.4)_60%,rgba(59,130,246,0.28))] shadow-[0_18px_45px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl transition-[transform,width,opacity] duration-500 ${indicator.ready ? 'opacity-100' : 'opacity-0'
-          }`}
-        style={{
-          transform: `translateX(${indicator.left}px)`,
-          width: `${indicator.width}px`,
-          transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-        }}
-      />
-      {tabs.map(tab => {
-        const isActive = tab.id === activeTab
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange(tab.id)}
-            ref={node => {
-              tabRefs.current.set(tab.id, node)
-            }}
-            className={`relative z-10 flex items-center gap-2 rounded-full px-6 py-3 text-base font-semibold transition-colors duration-300 ${isActive ? 'text-slate-900' : 'text-[var(--page-fg)] hover:text-[var(--primary-accent)]'
-              }`}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-          </button>
-        )
-      })}
+    <div className="mx-auto w-max max-w-full overflow-x-auto rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-1 py-1 shadow-soft backdrop-blur-md sm:overflow-x-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+      <div ref={containerRef} className="relative flex w-max flex-nowrap items-center gap-2 mx-auto">
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute left-0 top-0 bottom-0 rounded-full border border-white/30 bg-[linear-gradient(135deg,rgba(59,130,246,0.55),rgba(59,130,246,0.4)_60%,rgba(59,130,246,0.28))] shadow-[0_18px_45px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl transition-[transform,width,opacity] duration-500 ${indicator.ready ? 'opacity-100' : 'opacity-0'
+            }`}
+          style={{
+            transform: `translateX(${indicator.left}px)`,
+            width: `${indicator.width}px`,
+            transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+        />
+        {tabs.map(tab => {
+          const isActive = tab.id === activeTab
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onChange(tab.id)}
+              ref={node => {
+                tabRefs.current.set(tab.id, node)
+              }}
+              className={`relative z-10 flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-300 sm:px-6 sm:py-3 sm:text-base ${isActive ? 'text-slate-900' : 'text-[var(--page-fg)] hover:text-[var(--primary-accent)]'
+                }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useBlockingAsync } from '../../hooks/useBlockingAsync'
 
@@ -9,6 +10,7 @@ import { mapApiError } from '../../utils/errors'
 import type { Category } from '../../types'
 import { CategoriesGrid } from './CategoriesGrid'
 import { AddCategoryModal } from './AddCategoryModal'
+import { buttonStyles, cardStyles } from './settingsStyles'
 
 interface SettingsCategoriesTabProps {
     isAddCategoryOpen: boolean
@@ -95,7 +97,6 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
         }
     }, [isError])
 
-
     const handleDefaultSelect = (categoryId: string, categoryType: 'income' | 'expense') => {
         if (!categoryId) return
         if (categoryType === 'income') {
@@ -111,7 +112,6 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     const handleDelete = (category: Category) => {
         const identifier = resolveCategoryId(category)
         if (!identifier) {
-
             return
         }
         executeDelete(identifier)
@@ -120,25 +120,24 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
     const handleSetDefault = (category: Category) => {
         const identifier = resolveCategoryId(category)
         if (!identifier) {
-
             return
         }
         handleDefaultSelect(identifier, category.type)
     }
 
     return (
-        <div className="relative flex h-full flex-col">
-            <div className="mb-6 flex shrink-0 items-center justify-between">
-                <div>
+        <div className="relative flex h-full min-h-0 flex-col">
+            <div className="mb-4 flex shrink-0 flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
+                <div className="hidden md:block">
                     <h2 className="text-lg font-semibold tracking-tight text-[var(--page-fg)]">Categories</h2>
                     <p className="text-sm text-[var(--text-muted)]">Manage your income and expense categories</p>
                 </div>
                 <button
                     type="button"
                     onClick={onAddCategoryOpen}
-                    className="relative overflow-hidden rounded-xl bg-[#3498db] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-[#2980b9] hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-95"
+                    className={`w-full md:w-auto ${buttonStyles.primary}`}
                 >
-                    <span className="relative z-10 flex items-center gap-2">
+                    <span className="flex items-center justify-center gap-2">
                         <span className="text-lg leading-none">+</span>
                         <span>Add Category</span>
                     </span>
@@ -157,12 +156,13 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                     </div>
                 ) : null}
 
-                <div className="min-h-0 flex-1 group relative overflow-hidden rounded-3xl border border-[var(--border-glass)] bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass)]/30 p-1 transition-all hover:border-[var(--border-glass-strong)] hover:shadow-lg hover:shadow-black/5">
-                    <div className="relative h-full rounded-[1.4rem] bg-[var(--page-bg)]/40 p-6 backdrop-blur-xl overflow-hidden flex flex-col">
+                <div className={`${cardStyles.primary} flex min-h-0 flex-1 flex-col overflow-hidden`}>
+                    <div className="min-h-0 flex-1">
                         <CategoriesGrid
                             isLoading={isLoading}
                             categories={categories}
                             limit={categoriesLimit}
+                            view="all"
                             deleteMutation={{ isPending: isDeleting, variables: undefined }}
                             resolveCategoryId={resolveCategoryId}
                             onDelete={handleDelete}
@@ -183,12 +183,17 @@ export const SettingsCategoriesTab = ({ isAddCategoryOpen, onAddCategoryClose, o
                 </div>
             )}
 
-            <AddCategoryModal
-                open={isAddCategoryOpen}
-                onClose={onAddCategoryClose}
-                categories={categories}
-                limit={categoriesLimit}
-            />
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <AddCategoryModal
+                        open={isAddCategoryOpen}
+                        onClose={onAddCategoryClose}
+                        categories={categories}
+                        limit={categoriesLimit}
+                    />,
+                    document.body
+                )
+                : null}
             {deleteModal}
             {defaultModal}
         </div>

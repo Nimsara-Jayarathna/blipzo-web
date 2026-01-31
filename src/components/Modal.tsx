@@ -13,6 +13,10 @@ interface ModalProps {
   widthClassName?: string
   zIndex?: string
   showCloseButton?: boolean
+  bodyClassName?: string
+  bodyScroll?: boolean
+  containerClassName?: string
+  panelClassName?: string
 }
 
 export const Modal = ({
@@ -26,6 +30,10 @@ export const Modal = ({
   widthClassName = 'max-w-lg',
   zIndex = 'z-50',
   showCloseButton = true,
+  bodyClassName,
+  bodyScroll = true,
+  containerClassName,
+  panelClassName,
 }: ModalProps) => {
   useScrollLock(open)
 
@@ -33,7 +41,7 @@ export const Modal = ({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className={`fixed inset-0 flex items-center justify-center p-4 sm:p-6 ${zIndex}`}
+          className={`fixed inset-0 flex items-center justify-center p-4 sm:p-6 ${zIndex} ${containerClassName ?? ''}`}
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -49,7 +57,7 @@ export const Modal = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={`relative w-full overflow-hidden rounded-[24px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-6 pb-6 pt-8 text-[var(--page-fg)] shadow-[0_45px_120px_-50px_rgba(15,35,55,0.6)] backdrop-blur-2xl sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10 ${widthClassName}`}
+            className={`relative w-full overflow-hidden rounded-[24px] border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-6 pb-6 pt-8 text-[var(--page-fg)] shadow-[0_45px_120px_-50px_rgba(15,35,55,0.6)] backdrop-blur-2xl sm:rounded-[34px] sm:px-10 sm:pb-8 sm:pt-10 ${widthClassName} ${panelClassName ?? ''}`}
             initial={{ y: 36, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 24, opacity: 0, scale: 0.97 }}
@@ -69,14 +77,20 @@ export const Modal = ({
                 </button>
               ) : null}
             </div>
-            <div className="flex flex-col gap-5">
+            <div className="flex min-h-0 flex-col gap-5">
               {title ? (
                 <div className="pr-4">
                   <h2 className="text-2xl font-semibold text-[var(--page-fg)]">{title}</h2>
                   {subtitle ? <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p> : null}
                 </div>
               ) : null}
-              <div className="max-h-[65vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+              <div
+                className={`${
+                  bodyScroll
+                    ? "max-h-[65vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
+                    : 'min-h-0 overflow-hidden'
+                } ${bodyClassName ?? ''}`}
+              >
                 {children}
               </div>
               {footer ? <div className="border-t border-[var(--border-glass)] pt-4">{footer}</div> : null}
