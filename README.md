@@ -10,7 +10,8 @@ React + Vite + Tailwind + TypeScript frontend for the Blipzo expense tracker. It
 
 ## Release Notes
 Detailed release notes for each version can be found in the [docs/releases](docs/releases/) directory.
-- Latest Release: [v1.0.0](docs/releases/v1.0.0.md)
+- Latest Release: [v1.1.0](docs/releases/v1.1.0.md)
+- Previous Releases: [v1.0.0](docs/releases/v1.0.0.md)
 
 ## Project structure (high level)
 ```
