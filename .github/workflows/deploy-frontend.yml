@@ -35,7 +35,6 @@ concurrency:
 
 env:
   APP_DIR: .
-  IMAGE_NAME: blipzo-web
   DOCKER_NETWORK: npm_default
 
 jobs:
@@ -61,7 +60,8 @@ jobs:
           set -euo pipefail
 
           SHORT_SHA="$(git rev-parse --short HEAD)"
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}"
+          # GHCR requires lowercase repository names
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
 
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             DEPLOY_ENV="production"
