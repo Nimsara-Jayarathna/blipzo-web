@@ -1,0 +1,204 @@
+name: Deploy blipzo-web
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "Dockerfile"
+      - "nginx.conf"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - ".github/workflows/deploy-frontend.yml"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "Dockerfile"
+      - "nginx.conf"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: blipzo-web-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_DIR: .
+  DOCKER_NETWORK: npm_default
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_env: ${{ steps.vars.outputs.deploy_env }}
+      image: ${{ steps.vars.outputs.image }}
+      image_tag_env: ${{ steps.vars.outputs.image_tag_env }}
+      image_tag_sha: ${{ steps.vars.outputs.image_tag_sha }}
+      container_name: ${{ steps.vars.outputs.container_name }}
+      network_alias: ${{ steps.vars.outputs.network_alias }}
+      docker_network: ${{ steps.vars.outputs.docker_network }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set deployment variables
+        id: vars
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SHORT_SHA="$(git rev-parse --short HEAD)"
+          # GHCR requires lowercase repository names
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            DEPLOY_ENV="production"
+            IMAGE_TAG_ENV="prod"
+            CONTAINER_NAME="blipzo-web-prod"
+            NETWORK_ALIAS="blipzo-web-prod"
+            VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL_PROD }}"
+            VITE_API_VERSION="${{ secrets.VITE_API_VERSION_PROD }}"
+          else
+            DEPLOY_ENV="staging"
+            IMAGE_TAG_ENV="stg"
+            CONTAINER_NAME="blipzo-web-stg"
+            NETWORK_ALIAS="blipzo-web-stg"
+            VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL_STG }}"
+            VITE_API_VERSION="${{ secrets.VITE_API_VERSION_STG }}"
+          fi
+
+          DOCKER_NETWORK_FROM_SECRET="${{ secrets.NPM_NET_NAME }}"
+          DOCKER_NETWORK_EFFECTIVE="${DOCKER_NETWORK_FROM_SECRET:-${DOCKER_NETWORK}}"
+
+          echo "::add-mask::$VITE_API_BASE_URL"
+          echo "::add-mask::$VITE_API_VERSION"
+
+          echo "deploy_env=${DEPLOY_ENV}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "image_tag_env=${IMAGE_TAG_ENV}" >> "$GITHUB_OUTPUT"
+          echo "image_tag_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "container_name=${CONTAINER_NAME}" >> "$GITHUB_OUTPUT"
+          echo "network_alias=${NETWORK_ALIAS}" >> "$GITHUB_OUTPUT"
+          echo "docker_network=${DOCKER_NETWORK_EFFECTIVE}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "VITE_API_BASE_URL<<__EOF__"
+            printf '%s\n' "$VITE_API_BASE_URL"
+            echo "__EOF__"
+            echo "VITE_API_VERSION<<__EOF__"
+            printf '%s\n' "$VITE_API_VERSION"
+            echo "__EOF__"
+          } >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (and push on push events)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.APP_DIR }}
+          file: Dockerfile
+          push: ${{ github.event_name == 'push' }}
+          build-args: |
+            VITE_API_BASE_URL=${{ env.VITE_API_BASE_URL }}
+            VITE_API_VERSION=${{ env.VITE_API_VERSION }}
+          tags: |
+            ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.image_tag_env }}
+            ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.image_tag_sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
+    environment: ${{ needs.build.outputs.deploy_env }}
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      DOCKER_NETWORK: ${{ needs.build.outputs.docker_network }}
+      CONTAINER_NAME: ${{ needs.build.outputs.container_name }}
+      NETWORK_ALIAS: ${{ needs.build.outputs.network_alias }}
+      IMAGE: ${{ needs.build.outputs.image }}:${{ needs.build.outputs.image_tag_env }}
+
+    steps:
+      - name: Prepare SSH key
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "::add-mask::$SSH_HOST"
+          echo "::add-mask::$SSH_PORT"
+          echo "::add-mask::$SSH_USER"
+          echo "::add-mask::$SSH_PRIVATE_KEY"
+
+          if [ -z "${SSH_PORT:-}" ] || ! echo "$SSH_PORT" | grep -Eq '^[0-9]+$'; then
+            echo "Invalid SSH_PORT: $SSH_PORT" >&2
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+          echo "SSH_OPTS=-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes" >> "$GITHUB_ENV"
+
+      - name: Ensure Docker network exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "NPM_NET_NAME='${DOCKER_NETWORK}' bash -s" <<'EOF'
+          set -euo pipefail
+          if ! docker network inspect "$NPM_NET_NAME" >/dev/null 2>&1; then
+            docker network create --driver bridge "$NPM_NET_NAME"
+          fi
+          EOF
+
+      - name: Stop and remove existing container
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "docker rm -f '$CONTAINER_NAME' >/dev/null 2>&1 || true"
+
+      - name: Pull image
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "docker pull '$IMAGE'"
+
+      - name: Run container
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "NPM_NET_NAME='${DOCKER_NETWORK}' CONTAINER_NAME='${CONTAINER_NAME}' NETWORK_ALIAS='${NETWORK_ALIAS}' IMAGE='${IMAGE}' bash -s" <<'EOF'
+          set -euo pipefail
+          docker run -d --name "$CONTAINER_NAME" \
+            --network "$NPM_NET_NAME" \
+            --network-alias "$NETWORK_ALIAS" \
+            --restart unless-stopped \
+            "$IMAGE"
+          EOF
