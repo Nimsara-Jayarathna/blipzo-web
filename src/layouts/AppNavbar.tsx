@@ -35,7 +35,7 @@ export const AppNavbar = ({
   const itemClass =
     'inline-flex items-center gap-2 rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] px-4 py-2 text-sm font-medium text-[var(--page-fg)] backdrop-blur-md transition hover:border-accent/40 hover:text-accent'
   const themeButtonClass =
-    'flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] text-[var(--page-fg)] shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:text-accent'
+    'flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass)] text-[var(--page-fg)] shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40'
   const landingPrimaryClass =
     'rounded-full border border-[var(--border-glass)] bg-[var(--surface-glass-thick)] px-6 py-2 text-sm font-bold text-[var(--page-fg)] backdrop-blur-md transition hover:border-[#3498db] hover:text-[#3498db]'
   const iconClass = 'h-4 w-4 text-accent'
@@ -69,7 +69,9 @@ export const AppNavbar = ({
                 type="button"
                 onClick={onToggleTheme}
                 className={themeButtonClass}
-                aria-label="Toggle theme"
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-pressed={theme === 'dark'}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 <FontAwesomeIcon icon={theme === 'light' ? faMoon : faSun} />
               </button>
@@ -90,7 +92,9 @@ export const AppNavbar = ({
                 type="button"
                 onClick={onToggleTheme}
                 className={themeButtonClass}
-                aria-label="Toggle theme"
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-pressed={theme === 'dark'}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 <FontAwesomeIcon icon={theme === 'light' ? faMoon : faSun} />
               </button>
